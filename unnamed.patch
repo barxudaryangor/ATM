@@ -1,0 +1,995 @@
+Index: src/main/java/org/example/atm/Bank/Bank.java
+===================================================================
+diff --git a/src/main/java/org/example/atm/Bank/Bank.java b/src/main/java/org/example/atm/Bank/Bank.java
+deleted file mode 100644
+--- a/src/main/java/org/example/atm/Bank/Bank.java	
++++ /dev/null	
+@@ -1,43 +0,0 @@
+-package org.example.atm.Bank;
+-
+-
+-import com.fasterxml.jackson.annotation.JsonManagedReference;
+-import jakarta.persistence.*;
+-import lombok.AllArgsConstructor;
+-import lombok.Getter;
+-import lombok.NoArgsConstructor;
+-import lombok.Setter;
+-import org.example.atm.BankAccount.BankAccount;
+-import org.example.atm.Human.Human;
+-
+-import java.util.ArrayList;
+-import java.util.List;
+-
+-@Entity
+-@AllArgsConstructor
+-@NoArgsConstructor
+-@Getter
+-@Setter
+-
+-public class Bank {
+-    @Id
+-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+-    private Long id;
+-
+-    private String name;
+-
+-    private String location;
+-
+-
+-    private List<BankAccount> bankAccounts = new ArrayList<>();
+-
+-
+-    @OneToMany(mappedBy = "bank", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+-    public List<BankAccount> getBankAccounts() {
+-        return this.bankAccounts;
+-    }
+-
+-
+-
+-
+-}
+Index: src/main/java/org/example/atm/Bank/BankDTO.java
+===================================================================
+diff --git a/src/main/java/org/example/atm/Bank/BankDTO.java b/src/main/java/org/example/atm/Bank/BankDTO.java
+deleted file mode 100644
+--- a/src/main/java/org/example/atm/Bank/BankDTO.java	
++++ /dev/null	
+@@ -1,20 +0,0 @@
+-package org.example.atm.Bank;
+-
+-import lombok.AllArgsConstructor;
+-import lombok.Getter;
+-import lombok.NoArgsConstructor;
+-import lombok.Setter;
+-import org.example.atm.Human.HumanDTO;
+-
+-import java.util.List;
+-
+-@Getter
+-@Setter
+-@NoArgsConstructor
+-@AllArgsConstructor
+-public class BankDTO {
+-    private Long id;
+-    private String name;
+-    private String location;
+-    private List<HumanDTO> humans;
+-}
+\ No newline at end of file
+Index: src/main/java/org/example/atm/Bank/BankMapper.java
+===================================================================
+diff --git a/src/main/java/org/example/atm/Bank/BankMapper.java b/src/main/java/org/example/atm/Bank/BankMapper.java
+deleted file mode 100644
+--- a/src/main/java/org/example/atm/Bank/BankMapper.java	
++++ /dev/null	
+@@ -1,16 +0,0 @@
+-package org.example.atm.Bank;
+-
+-import org.mapstruct.Mapper;
+-import org.mapstruct.Mapping;
+-
+-import java.util.List;
+-
+-@Mapper(componentModel = "spring")
+-public interface BankMapper {
+-    BankDTO bankToDTO(Bank bank);
+-    Bank dtoToBank(BankDTO bankDTO);
+-
+-    List<BankDTO> bankListToDTO(List<Bank> banks);
+-    List<Bank> dtoListToBank(List<BankDTO> dtoBanks);
+-
+-}
+\ No newline at end of file
+Index: src/main/java/org/example/atm/Bank/BankService.java
+===================================================================
+diff --git a/src/main/java/org/example/atm/Bank/BankService.java b/src/main/java/org/example/atm/Bank/BankService.java
+deleted file mode 100644
+--- a/src/main/java/org/example/atm/Bank/BankService.java	
++++ /dev/null	
+@@ -1,79 +0,0 @@
+-package org.example.atm.Bank;
+-
+-import org.example.atm.Human.Human;
+-import org.example.atm.Human.HumanRepository;
+-import org.springframework.stereotype.Service;
+-
+-import java.util.List;
+-import java.util.stream.Collectors;
+-
+-@Service
+-public class BankService implements BankServiceInterface {
+-
+-    private final BankRepository bankRepository;
+-    private final BankMapper bankMapper;
+-    private final BankUpdater bankUpdater;
+-    private final HumanRepository humanRepository;
+-
+-    public BankService(BankRepository bankRepository, BankMapper bankMapper, BankUpdater bankUpdater, HumanRepository humanRepository) {
+-        this.bankRepository = bankRepository;
+-        this.bankMapper = bankMapper;
+-        this.bankUpdater = bankUpdater;
+-        this.humanRepository = humanRepository;
+-    }
+-
+-    public List<BankDTO> getAllBanks() {
+-        return bankRepository.findAll().stream()
+-                .map(bankMapper::bankToDTO)
+-                .collect(Collectors.toList());
+-    }
+-
+-    public BankDTO getBankById(Long id) {
+-        Bank bank = bankRepository.findById(id).orElseThrow(() -> new RuntimeException("Bank not found"));
+-        return bankMapper.bankToDTO(bank);
+-    }
+-
+-    public BankDTO createBank(BankDTO bankDTO) {
+-        Bank bank = bankMapper.dtoToBank(bankDTO);
+-
+-        bank = bankRepository.save(bank);
+-        List<Human> humans = bank.getHumans();
+-
+-
+-        for(Human human : humans) {
+-            human.setBank(bank);
+-            human.getBank().setId(bank.getId());
+-        }
+-
+-
+-        humanRepository.saveAll(humans);
+-
+-        Bank savedBank = bankRepository.save(bank);
+-
+-        BankDTO savedBankDTO = bankMapper.bankToDTO(savedBank);
+-        for(int i = 0 ; i < savedBankDTO.getHumans().size(); i++) {
+-            savedBankDTO.getHumans().get(i).setBankId(savedBank.getId());
+-        }
+-
+-        return savedBankDTO;
+-
+-
+-    }
+-
+-    public BankDTO updateBank(Long id, BankDTO bankDTO) {
+-        Bank bank = bankRepository.findById(id)
+-                .orElseThrow(() -> new RuntimeException("Bank not found"));
+-
+-        bankUpdater.updateBank(bank, bankDTO);
+-
+-        return bankMapper.bankToDTO(bank);
+-    }
+-
+-    public void deleteBank(Long id) {
+-        Bank bank = bankRepository.findById(id)
+-                .orElseThrow(() -> new RuntimeException("Bank not found"));
+-
+-        bankRepository.delete(bank);
+-    }
+-
+-}
+\ No newline at end of file
+Index: src/main/java/org/example/atm/Bank/BankUpdater.java
+===================================================================
+diff --git a/src/main/java/org/example/atm/Bank/BankUpdater.java b/src/main/java/org/example/atm/Bank/BankUpdater.java
+deleted file mode 100644
+--- a/src/main/java/org/example/atm/Bank/BankUpdater.java	
++++ /dev/null	
+@@ -1,25 +0,0 @@
+-package org.example.atm.Bank;
+-
+-import org.example.atm.Human.Human;
+-import org.example.atm.Human.HumanMapper;
+-import org.springframework.stereotype.Component;
+-
+-import java.util.List;
+-
+-@Component
+-public class BankUpdater {
+-
+-    private final HumanMapper humanMapper;
+-
+-    public BankUpdater(HumanMapper humanMapper) {
+-        this.humanMapper = humanMapper;
+-    }
+-
+-    public void updateBank (Bank bank, BankDTO bankDTO) {
+-        bank.setName(bankDTO.getName());
+-        bank.setLocation(bankDTO.getLocation());
+-
+-        List<Human> humans = humanMapper.dtoListToHumanList(bankDTO.getHumans());
+-        bank.setHumans(humans);
+-    }
+-}
+Index: src/main/java/org/example/atm/Bank/BankController.java
+===================================================================
+diff --git a/src/main/java/org/example/atm/Bank/BankController.java b/src/main/java/org/example/atm/Bank/BankController.java
+deleted file mode 100644
+--- a/src/main/java/org/example/atm/Bank/BankController.java	
++++ /dev/null	
+@@ -1,43 +0,0 @@
+-package org.example.atm.Bank;
+-
+-import org.springframework.http.ResponseEntity;
+-import org.springframework.web.bind.annotation.*;
+-
+-import java.util.List;
+-
+-@RestController
+-@RequestMapping("/atm/banks")
+-public class BankController {
+-    private final BankServiceInterface bankServiceInterface;
+-
+-    public BankController(BankServiceInterface bankServiceInterface) {
+-        this.bankServiceInterface = bankServiceInterface;
+-    }
+-
+-    @GetMapping
+-    public ResponseEntity<List<BankDTO>> getAllBanks() {
+-        return ResponseEntity.ok(bankServiceInterface.getAllBanks());
+-    }
+-
+-    @GetMapping("/{id}")
+-    public ResponseEntity<BankDTO> getBankById(@PathVariable Long id) {
+-        return ResponseEntity.ok(bankServiceInterface.getBankById(id));
+-    }
+-
+-    @PostMapping
+-    public ResponseEntity<BankDTO> createBank(@RequestBody BankDTO bankDTO) {
+-        return ResponseEntity.status(201).body(bankServiceInterface.createBank(bankDTO));
+-    }
+-
+-    @PutMapping("/{id}")
+-    public ResponseEntity<BankDTO> updateBank(@PathVariable Long id, @RequestBody BankDTO bankDTO) {
+-        return ResponseEntity.ok(bankServiceInterface.updateBank(id, bankDTO));
+-    }
+-
+-    @DeleteMapping("/{id}")
+-    public ResponseEntity<String> deleteBank(@PathVariable Long id) {
+-        bankServiceInterface.deleteBank(id);
+-        return ResponseEntity.noContent().build();
+-    }
+-
+-}
+Index: src/main/java/org/example/atm/Bank/BankRepository.java
+===================================================================
+diff --git a/src/main/java/org/example/atm/Bank/BankRepository.java b/src/main/java/org/example/atm/Bank/BankRepository.java
+deleted file mode 100644
+--- a/src/main/java/org/example/atm/Bank/BankRepository.java	
++++ /dev/null	
+@@ -1,7 +0,0 @@
+-package org.example.atm.Bank;
+-
+-import org.springframework.data.jpa.repository.JpaRepository;
+-
+-public interface BankRepository extends JpaRepository<Bank, Long> {
+-
+-}
+Index: src/main/java/org/example/atm/Bank/BankServiceInterface.java
+===================================================================
+diff --git a/src/main/java/org/example/atm/Bank/BankServiceInterface.java b/src/main/java/org/example/atm/Bank/BankServiceInterface.java
+deleted file mode 100644
+--- a/src/main/java/org/example/atm/Bank/BankServiceInterface.java	
++++ /dev/null	
+@@ -1,12 +0,0 @@
+-package org.example.atm.Bank;
+-
+-import java.util.List;
+-
+-public interface BankServiceInterface {
+-
+-    List<BankDTO> getAllBanks();
+-    BankDTO getBankById(Long id);
+-    BankDTO createBank(BankDTO bankDTO);
+-    BankDTO updateBank(Long id, BankDTO bankDTO);
+-    void deleteBank(Long id);
+-}
+Index: src/main/java/org/example/atm/BankAccount/BankAccount.java
+===================================================================
+diff --git a/src/main/java/org/example/atm/BankAccount/BankAccount.java b/src/main/java/org/example/atm/BankAccount/BankAccount.java
+deleted file mode 100644
+--- a/src/main/java/org/example/atm/BankAccount/BankAccount.java	
++++ /dev/null	
+@@ -1,34 +0,0 @@
+-package org.example.atm.BankAccount;
+-
+-import com.fasterxml.jackson.annotation.JsonBackReference;
+-import jakarta.persistence.*;
+-import lombok.AllArgsConstructor;
+-import lombok.Getter;
+-import lombok.NoArgsConstructor;
+-import lombok.Setter;
+-import org.example.atm.Human.Human;
+-import org.example.atm.Bank.Bank;
+-
+-@Entity
+-@AllArgsConstructor
+-@NoArgsConstructor
+-@Getter
+-@Setter
+-
+-public class BankAccount {
+-    @Id
+-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+-    private Long id;
+-
+-    private String account_num;
+-    private double balance;
+-
+-
+-    @ManyToOne(fetch = FetchType.LAZY)
+-    @JoinColumn (name = "human_id")
+-    private Human human;
+-
+-    @ManyToOne
+-    private Bank bank;
+-
+-}
+Index: src/main/java/org/example/atm/BankAccount/BankAccountDTO.java
+===================================================================
+diff --git a/src/main/java/org/example/atm/BankAccount/BankAccountDTO.java b/src/main/java/org/example/atm/BankAccount/BankAccountDTO.java
+deleted file mode 100644
+--- a/src/main/java/org/example/atm/BankAccount/BankAccountDTO.java	
++++ /dev/null	
+@@ -1,20 +0,0 @@
+-package org.example.atm.BankAccount;
+-
+-import jakarta.persistence.*;
+-import lombok.AllArgsConstructor;
+-import lombok.Getter;
+-import lombok.NoArgsConstructor;
+-import lombok.Setter;
+-import org.example.atm.Human.HumanDTO;
+-
+-@Getter
+-@Setter
+-@AllArgsConstructor
+-@NoArgsConstructor
+-
+-public class BankAccountDTO {
+-    private Long id;
+-    private String account_num;
+-    private double balance;
+-    private Long humanId;
+-}
+\ No newline at end of file
+Index: src/main/java/org/example/atm/BankAccount/BankAccountMapper.java
+===================================================================
+diff --git a/src/main/java/org/example/atm/BankAccount/BankAccountMapper.java b/src/main/java/org/example/atm/BankAccount/BankAccountMapper.java
+deleted file mode 100644
+--- a/src/main/java/org/example/atm/BankAccount/BankAccountMapper.java	
++++ /dev/null	
+@@ -1,24 +0,0 @@
+-package org.example.atm.BankAccount;
+-
+-
+-import org.mapstruct.Mapper;
+-import org.mapstruct.Mapping;
+-import org.mapstruct.Named;
+-
+-import java.util.List;
+-
+-@Mapper(componentModel = "spring", uses = BankAccountMapperHelper.class)
+-public interface BankAccountMapper {
+-
+-    @Mapping(source = "human.id" ,target = "humanId" )
+-    BankAccountDTO bankAccountToDTO(BankAccount bankAccount);
+-
+-    @Mapping(source = "humanId", target = "human", qualifiedByName = "getHumanById")
+-    BankAccount dtoToBankAccount(BankAccountDTO bankAccountDTO);
+-
+-
+-    List<BankAccountDTO> bankAccountListToDTO(List<BankAccount> bankAccounts);
+-
+-
+-    List<BankAccount> dtoListToBankAccount(List<BankAccountDTO> bankAccountDTOs);
+-}
+\ No newline at end of file
+Index: src/main/java/org/example/atm/BankAccount/BankAccountService.java
+===================================================================
+diff --git a/src/main/java/org/example/atm/BankAccount/BankAccountService.java b/src/main/java/org/example/atm/BankAccount/BankAccountService.java
+deleted file mode 100644
+--- a/src/main/java/org/example/atm/BankAccount/BankAccountService.java	
++++ /dev/null	
+@@ -1,79 +0,0 @@
+-package org.example.atm.BankAccount;
+-
+-import org.example.atm.Bank.BankMapper;
+-import org.example.atm.Human.Human;
+-import org.springframework.stereotype.Service;
+-
+-import java.util.List;
+-import java.util.stream.Collectors;
+-
+-@Service
+-public class BankAccountService implements BankAccountServiceInterface {
+-    private final BankAccountRepository bankAccountRepository;
+-    private final BankAccountMapper bankAccountMapper;
+-    private final BankAccountUpdater bankAccountUpdater;
+-
+-    public BankAccountService(BankAccountRepository bankAccountRepository, BankAccountMapper bankAccountMapper, BankAccountUpdater bankAccountUpdater) {
+-        this.bankAccountRepository = bankAccountRepository;
+-        this.bankAccountMapper = bankAccountMapper;
+-        this.bankAccountUpdater = bankAccountUpdater;
+-    }
+-
+-    public String transferMoney(Human sender, Human receiver, double amount) {
+-        BankAccount senderAccount = bankAccountRepository.findByHuman(sender)
+-                .orElseThrow(() -> new RuntimeException("Счёт отправителя не найден"));
+-
+-        BankAccount receiverAccount = bankAccountRepository.findByHuman(receiver)
+-                .orElseThrow(() -> new RuntimeException("Счет получателя не найден"));
+-
+-        if (senderAccount.getBalance() < amount) {
+-            return "Недостаточно средств на счёте!";
+-        }
+-
+-        senderAccount.setBalance(senderAccount.getBalance() - amount);
+-        receiverAccount.setBalance(receiverAccount.getBalance() + amount);
+-
+-        bankAccountRepository.save(senderAccount);
+-        bankAccountRepository.save(receiverAccount);
+-
+-        return "Перевод выполнен успешно!";
+-    }
+-
+-    public List<BankAccountDTO> getAllBankAccounts() {
+-        return bankAccountRepository.findAll().stream()
+-                .map(bankAccountMapper::bankAccountToDTO)
+-                .collect(Collectors.toList());
+-    }
+-
+-    public BankAccountDTO getBankAccountById(Long id) {
+-        BankAccount bankAccount = bankAccountRepository.findById(id)
+-                .orElseThrow(() -> new RuntimeException("BankAccount not found"));
+-
+-        return bankAccountMapper.bankAccountToDTO(bankAccount);
+-    }
+-
+-    public BankAccountDTO createBankAccount(BankAccountDTO bankAccountDTO) {
+-        BankAccount bankAccount = bankAccountMapper.dtoToBankAccount(bankAccountDTO);
+-        if (bankAccount == null || bankAccount.getHuman() == null) {
+-            throw new RuntimeException("Bank account or associated human is null");
+-        }
+-        return bankAccountMapper.bankAccountToDTO(bankAccountRepository.save(bankAccount));
+-    }
+-
+-    public BankAccountDTO updateBankAccount(Long id, BankAccountDTO bankAccountDTO) {
+-        BankAccount bankAccount = bankAccountRepository.findById(id)
+-                .orElseThrow(() -> new RuntimeException("BankAccount not found"));
+-
+-        bankAccountUpdater.updateBankAccount(bankAccount, bankAccountDTO);
+-        return bankAccountMapper.bankAccountToDTO(bankAccountRepository.save(bankAccount));
+-    }
+-
+-    public void deleteBankAccount(Long id) {
+-        BankAccount bankAccount = bankAccountRepository.findById(id)
+-                .orElseThrow(() -> new RuntimeException("BankAccount not found"));
+-
+-        bankAccountRepository.delete(bankAccount);
+-    }
+-
+-
+-}
+\ No newline at end of file
+Index: src/main/java/org/example/atm/BankAccount/BankAccountUpdater.java
+===================================================================
+diff --git a/src/main/java/org/example/atm/BankAccount/BankAccountUpdater.java b/src/main/java/org/example/atm/BankAccount/BankAccountUpdater.java
+deleted file mode 100644
+--- a/src/main/java/org/example/atm/BankAccount/BankAccountUpdater.java	
++++ /dev/null	
+@@ -1,33 +0,0 @@
+-package org.example.atm.BankAccount;
+-
+-import org.example.atm.Human.Human;
+-import org.example.atm.Human.HumanMapper;
+-import org.example.atm.Human.HumanService;
+-import org.springframework.stereotype.Component;
+-
+-
+-@Component
+-public class BankAccountUpdater {
+-    private final HumanMapper humanMapper;
+-    private final HumanService humanService;
+-
+-    public BankAccountUpdater(HumanMapper humanMapper, HumanService humanService) {
+-        this.humanMapper = humanMapper;
+-        this.humanService = humanService;
+-    }
+-
+-    public void updateBankAccount(BankAccount bankAccount, BankAccountDTO bankAccountDTO) {
+-
+-        if(bankAccountDTO.getHumanId() != null) {
+-            Human human = humanMapper.dtoToHuman(humanService.getHumanById(bankAccountDTO.getHumanId()));
+-            bankAccount.setHuman(human);
+-        }
+-
+-        bankAccount.setAccount_num(bankAccountDTO.getAccount_num());
+-        bankAccount.setBalance(bankAccountDTO.getBalance());
+-
+-
+-
+-
+-    }
+-}
+Index: src/main/java/org/example/atm/BankAccount/BankAccountController.java
+===================================================================
+diff --git a/src/main/java/org/example/atm/BankAccount/BankAccountController.java b/src/main/java/org/example/atm/BankAccount/BankAccountController.java
+deleted file mode 100644
+--- a/src/main/java/org/example/atm/BankAccount/BankAccountController.java	
++++ /dev/null	
+@@ -1,45 +0,0 @@
+-package org.example.atm.BankAccount;
+-
+-import org.example.atm.Bank.Bank;
+-import org.springframework.http.ResponseEntity;
+-import org.springframework.web.bind.annotation.*;
+-
+-import java.util.List;
+-
+-@RestController
+-@RequestMapping("/atm/bank_accounts")
+-public class BankAccountController {
+-    private final BankAccountServiceInterface bankAccountServiceInterface;
+-
+-
+-    public BankAccountController(BankAccountServiceInterface bankAccountServiceInterface) {
+-        this.bankAccountServiceInterface = bankAccountServiceInterface;
+-    }
+-
+-    @GetMapping
+-    public ResponseEntity<List<BankAccountDTO>> getAllBankAccounts() {
+-        return ResponseEntity.ok(bankAccountServiceInterface.getAllBankAccounts());
+-    }
+-
+-    @GetMapping("/{id}")
+-    public ResponseEntity<BankAccountDTO> getBankAccountById(@PathVariable Long id) {
+-        return ResponseEntity.ok(bankAccountServiceInterface.getBankAccountById(id));
+-    }
+-
+-    @PostMapping
+-    public ResponseEntity<BankAccountDTO> createBankAccount(@RequestBody BankAccountDTO bankAccountDTO) {
+-        return ResponseEntity.status(201).body(bankAccountServiceInterface.createBankAccount(bankAccountDTO));
+-    }
+-
+-    @PutMapping("/{id}")
+-    public ResponseEntity<BankAccountDTO> updateBankAccount(@PathVariable Long id, @RequestBody BankAccountDTO bankAccountDTO) {
+-        return ResponseEntity.ok(bankAccountServiceInterface.updateBankAccount(id,bankAccountDTO));
+-    }
+-
+-    @DeleteMapping("/{id}")
+-    public ResponseEntity<String> deleteBankAccount(@PathVariable Long id) {
+-        bankAccountServiceInterface.deleteBankAccount(id);
+-        return ResponseEntity.noContent().build();
+-    }
+-
+-}
+Index: src/main/java/org/example/atm/BankAccount/BankAccountRepository.java
+===================================================================
+diff --git a/src/main/java/org/example/atm/BankAccount/BankAccountRepository.java b/src/main/java/org/example/atm/BankAccount/BankAccountRepository.java
+deleted file mode 100644
+--- a/src/main/java/org/example/atm/BankAccount/BankAccountRepository.java	
++++ /dev/null	
+@@ -1,11 +0,0 @@
+-package org.example.atm.BankAccount;
+-
+-import org.example.atm.Human.Human;
+-import org.springframework.data.jpa.repository.JpaRepository;
+-
+-
+-import java.util.Optional;
+-
+-public interface BankAccountRepository extends JpaRepository<BankAccount, Long> {
+-    Optional<BankAccount> findByHuman(Human human);
+-}
+Index: src/main/java/org/example/atm/BankAccount/BankAccountMapperHelper.java
+===================================================================
+diff --git a/src/main/java/org/example/atm/BankAccount/BankAccountMapperHelper.java b/src/main/java/org/example/atm/BankAccount/BankAccountMapperHelper.java
+deleted file mode 100644
+--- a/src/main/java/org/example/atm/BankAccount/BankAccountMapperHelper.java	
++++ /dev/null	
+@@ -1,25 +0,0 @@
+-package org.example.atm.BankAccount;
+-
+-import org.example.atm.Human.Human;
+-import org.example.atm.Human.HumanRepository;
+-import org.mapstruct.Named;
+-import org.springframework.stereotype.Component;
+-
+-@Component
+-public class BankAccountMapperHelper {
+-    private final HumanRepository humanRepository;
+-
+-    public BankAccountMapperHelper(HumanRepository humanRepository) {
+-        this.humanRepository = humanRepository;
+-    }
+-
+-    @Named("getHumanById")
+-    public Human getHumanById(Long humanId) {
+-
+-        if(humanId == null) {
+-            return null;
+-        }
+-
+-        return humanRepository.findById(humanId).orElseThrow(() -> new RuntimeException("Human not found"));
+-    }
+-}
+Index: src/main/java/org/example/atm/BankAccount/BankAccountServiceInterface.java
+===================================================================
+diff --git a/src/main/java/org/example/atm/BankAccount/BankAccountServiceInterface.java b/src/main/java/org/example/atm/BankAccount/BankAccountServiceInterface.java
+deleted file mode 100644
+--- a/src/main/java/org/example/atm/BankAccount/BankAccountServiceInterface.java	
++++ /dev/null	
+@@ -1,14 +0,0 @@
+-package org.example.atm.BankAccount;
+-
+-import org.example.atm.Human.Human;
+-
+-import java.util.List;
+-
+-public interface BankAccountServiceInterface {
+-    String transferMoney(Human sender, Human receiver, double amount);
+-    List<BankAccountDTO> getAllBankAccounts();
+-    BankAccountDTO getBankAccountById(Long id);
+-    BankAccountDTO createBankAccount(BankAccountDTO bankAccountDTO);
+-    BankAccountDTO updateBankAccount(Long id, BankAccountDTO bankAccountDTO);
+-    void deleteBankAccount(Long id);
+-}
+Index: src/main/java/org/example/atm/Human/Human.java
+===================================================================
+diff --git a/src/main/java/org/example/atm/Human/Human.java b/src/main/java/org/example/atm/Human/Human.java
+deleted file mode 100644
+--- a/src/main/java/org/example/atm/Human/Human.java	
++++ /dev/null	
+@@ -1,43 +0,0 @@
+-package org.example.atm.Human;
+-
+-import com.fasterxml.jackson.annotation.JsonBackReference;
+-import com.fasterxml.jackson.annotation.JsonIgnore;
+-import com.fasterxml.jackson.annotation.JsonManagedReference;
+-import jakarta.persistence.*;
+-import lombok.AllArgsConstructor;
+-import lombok.Getter;
+-import lombok.NoArgsConstructor;
+-import lombok.Setter;
+-import org.example.atm.Bank.Bank;
+-import org.example.atm.BankAccount.BankAccount;
+-
+-import java.time.LocalDate;
+-import java.util.*;
+-
+-@Entity
+-@AllArgsConstructor
+-@NoArgsConstructor
+-@Getter
+-@Setter
+-
+-public class Human {
+-    @Id
+-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+-    private Long id;
+-
+-    private String first_name;
+-    private String last_name;
+-    private String email;
+-    private LocalDate birth_date;
+-
+-
+-    private List<BankAccount> bankAccounts = new ArrayList<>();
+-
+-
+-    @OneToMany (mappedBy = "human", fetch = FetchType.LAZY)
+-    public List<BankAccount> getBankAccounts() {
+-        return this.bankAccounts;
+-    }
+-
+-
+-}
+Index: src/main/java/org/example/atm/Human/HumanDTO.java
+===================================================================
+diff --git a/src/main/java/org/example/atm/Human/HumanDTO.java b/src/main/java/org/example/atm/Human/HumanDTO.java
+deleted file mode 100644
+--- a/src/main/java/org/example/atm/Human/HumanDTO.java	
++++ /dev/null	
+@@ -1,25 +0,0 @@
+-package org.example.atm.Human;
+-
+-import lombok.AllArgsConstructor;
+-import lombok.Getter;
+-import lombok.NoArgsConstructor;
+-import lombok.Setter;
+-import org.example.atm.Bank.BankDTO;
+-import org.example.atm.BankAccount.BankAccountDTO;
+-
+-import java.time.LocalDate;
+-import java.util.List;
+-@Getter
+-@Setter
+-@AllArgsConstructor
+-@NoArgsConstructor
+-
+-public class HumanDTO {
+-    private Long id;
+-    private String first_name;
+-    private String last_name;
+-    private String email;
+-    private LocalDate birth_date;
+-    private Long bankId;
+-    private List<BankAccountDTO> bankAccounts;
+-}
+\ No newline at end of file
+Index: src/main/java/org/example/atm/Human/HumanMapper.java
+===================================================================
+diff --git a/src/main/java/org/example/atm/Human/HumanMapper.java b/src/main/java/org/example/atm/Human/HumanMapper.java
+deleted file mode 100644
+--- a/src/main/java/org/example/atm/Human/HumanMapper.java	
++++ /dev/null	
+@@ -1,24 +0,0 @@
+-package org.example.atm.Human;
+-
+-import org.example.atm.Bank.BankMapper;
+-import org.example.atm.BankAccount.BankAccount;
+-import org.example.atm.BankAccount.BankAccountDTO;
+-import org.example.atm.BankAccount.BankAccountMapper;
+-import org.mapstruct.Mapper;
+-import org.mapstruct.Mapping;
+-
+-import java.util.List;
+-
+-@Mapper(componentModel = "spring", uses = {BankMapper.class, BankAccountMapper.class, HumanMapperHelper.class})
+-public interface HumanMapper {
+-
+-
+-    HumanDTO humanToDTO(Human human);
+-    Human dtoToHuman(HumanDTO humanDTO);
+-
+-    List<Human> dtoListToHumanList(List<HumanDTO> humanDTOs);
+-    List<HumanDTO> humanListoToDTOList(List<Human> humans);
+-
+-
+-
+-}
+\ No newline at end of file
+Index: src/main/java/org/example/atm/Human/HumanService.java
+===================================================================
+diff --git a/src/main/java/org/example/atm/Human/HumanService.java b/src/main/java/org/example/atm/Human/HumanService.java
+deleted file mode 100644
+--- a/src/main/java/org/example/atm/Human/HumanService.java	
++++ /dev/null	
+@@ -1,56 +0,0 @@
+-package org.example.atm.Human;
+-
+-import org.example.atm.Bank.BankRepository;
+-import org.example.atm.BankAccount.BankAccount;
+-import org.example.atm.BankAccount.BankAccountDTO;
+-import org.springframework.stereotype.Service;
+-
+-import java.util.List;
+-import java.util.stream.Collectors;
+-
+-@Service
+-public class HumanService implements HumanServiceInterface{
+-    private final HumanRepository humanRepository;
+-    private final HumanMapper humanMapper;
+-    private final HumanDataRepository humanDataRepository;
+-    private final BankRepository bankRepository;
+-
+-    public HumanService(HumanRepository humanRepository, HumanMapper humanMapper, HumanDataRepository humanDataRepository, BankRepository bankRepository) {
+-        this.humanRepository = humanRepository;
+-        this.humanMapper = humanMapper;
+-        this.humanDataRepository = humanDataRepository;
+-        this.bankRepository = bankRepository;
+-    }
+-
+-    public List<HumanDTO> getAllHumans(){
+-        return humanRepository.findAll().stream()
+-                .map(humanMapper::humanToDTO)
+-                .collect(Collectors.toList());
+-    }
+-
+-    public HumanDTO getHumanById(Long id) {
+-        Human human = humanRepository.findById(id)
+-                .orElseThrow(() -> new RuntimeException("Human not found"));
+-
+-        return humanMapper.humanToDTO(human);
+-    }
+-
+-    public HumanDTO createHuman(HumanDTO humanDTO) {
+-        Human human = humanMapper.dtoToHuman(humanDTO);
+-        return humanMapper.humanToDTO(humanRepository.save(human));
+-    }
+-
+-    public HumanDTO updateHuman(Long id, HumanDTO humanDTO) {
+-        Human human = humanRepository.findById(id)
+-                .orElseThrow(() -> new RuntimeException("Human not found"));
+-
+-        humanDataRepository.updateHuman(human, humanDTO);
+-        return humanMapper.humanToDTO(humanRepository.save(human));
+-    }
+-
+-    public void deleteHuman(Long id) {
+-        Human human = humanRepository.findById(id)
+-                .orElseThrow(() -> new RuntimeException("Human not found"));
+-        humanRepository.delete(human);
+-    }
+-}
+Index: src/main/java/org/example/atm/Human/HumanController.java
+===================================================================
+diff --git a/src/main/java/org/example/atm/Human/HumanController.java b/src/main/java/org/example/atm/Human/HumanController.java
+deleted file mode 100644
+--- a/src/main/java/org/example/atm/Human/HumanController.java	
++++ /dev/null	
+@@ -1,42 +0,0 @@
+-package org.example.atm.Human;
+-
+-import org.springframework.http.ResponseEntity;
+-import org.springframework.web.bind.annotation.*;
+-
+-import java.util.List;
+-
+-@RestController
+-@RequestMapping("/atm/humans")
+-public class HumanController {
+-    private final HumanServiceInterface humanServiceInterface;
+-
+-    public HumanController(HumanServiceInterface humanServiceInterface) {
+-        this.humanServiceInterface = humanServiceInterface;
+-    }
+-
+-    @GetMapping
+-    public ResponseEntity<List<HumanDTO>> getAllHumans() {
+-        return ResponseEntity.ok(humanServiceInterface.getAllHumans());
+-    }
+-
+-    @GetMapping("/{id}")
+-    public ResponseEntity<HumanDTO> getHumanById(@PathVariable Long id) {
+-        return ResponseEntity.ok(humanServiceInterface.getHumanById(id));
+-    }
+-
+-    @PostMapping
+-    public ResponseEntity<HumanDTO> createHuman(@RequestBody HumanDTO humanDTO) {
+-        return ResponseEntity.status(201).body(humanServiceInterface.createHuman(humanDTO));
+-    }
+-
+-    @PutMapping("/{id}")
+-    public ResponseEntity<HumanDTO> updateHuman(@PathVariable Long id, @RequestBody HumanDTO humanDTO) {
+-        return ResponseEntity.ok(humanServiceInterface.updateHuman(id,humanDTO));
+-    }
+-
+-    @DeleteMapping("/{id}")
+-    public ResponseEntity<String> deleteHuman(@PathVariable Long id) {
+-        humanServiceInterface.deleteHuman(id);
+-        return ResponseEntity.noContent().build();
+-    }
+-}
+Index: src/main/java/org/example/atm/Human/HumanRepository.java
+===================================================================
+diff --git a/src/main/java/org/example/atm/Human/HumanRepository.java b/src/main/java/org/example/atm/Human/HumanRepository.java
+deleted file mode 100644
+--- a/src/main/java/org/example/atm/Human/HumanRepository.java	
++++ /dev/null	
+@@ -1,6 +0,0 @@
+-package org.example.atm.Human;
+-
+-import org.springframework.data.jpa.repository.JpaRepository;
+-
+-public interface HumanRepository extends JpaRepository<Human, Long> {
+-}
+Index: src/main/java/org/example/atm/Human/HumanMapperHelper.java
+===================================================================
+diff --git a/src/main/java/org/example/atm/Human/HumanMapperHelper.java b/src/main/java/org/example/atm/Human/HumanMapperHelper.java
+deleted file mode 100644
+--- a/src/main/java/org/example/atm/Human/HumanMapperHelper.java	
++++ /dev/null	
+@@ -1,26 +0,0 @@
+-package org.example.atm.Human;
+-
+-import org.example.atm.Bank.Bank;
+-import org.example.atm.Bank.BankRepository;
+-import org.mapstruct.Named;
+-import org.springframework.stereotype.Component;
+-
+-@Component
+-public class HumanMapperHelper {
+-    private final BankRepository bankRepository;
+-
+-    public HumanMapperHelper(BankRepository bankRepository) {
+-        this.bankRepository = bankRepository;
+-    }
+-
+-    @Named("getBankById")
+-    public Bank getBankById(Long bankId) {
+-        if(bankId == null) {
+-            return null;
+-        }
+-
+-
+-        return bankRepository.findById(bankId).orElseThrow(() -> new RuntimeException("Bank not found"));
+-    }
+-
+-}
+Index: src/main/java/org/example/atm/Human/HumanDataRepository.java
+===================================================================
+diff --git a/src/main/java/org/example/atm/Human/HumanDataRepository.java b/src/main/java/org/example/atm/Human/HumanDataRepository.java
+deleted file mode 100644
+--- a/src/main/java/org/example/atm/Human/HumanDataRepository.java	
++++ /dev/null	
+@@ -1,42 +0,0 @@
+-package org.example.atm.Human;
+-
+-import lombok.RequiredArgsConstructor;
+-import org.example.atm.Bank.BankRepository;
+-import org.example.atm.BankAccount.BankAccountRepository;
+-import org.example.atm.BankAccount.BankAccountDTO;
+-import org.example.atm.BankAccount.BankAccount;
+-import org.springframework.stereotype.Repository;
+-
+-import java.util.List;
+-
+-@Repository
+-@RequiredArgsConstructor
+-public class HumanDataRepository {
+-
+-    private final BankRepository bankRepository;
+-    private final HumanRepository humanRepository;
+-    private final BankAccountRepository bankAccountRepository;
+-
+-    public void updateHuman(Human human, HumanDTO humanDTO) {
+-        if (humanDTO.getBankId() != null && humanDTO.getBankAccounts() != null) {
+-            var bank = bankRepository.findById(humanDTO.getBankId())
+-                    .orElseThrow(() -> new RuntimeException("Bank not found"));
+-
+-            List<Long> bankAccountIds = humanDTO.getBankAccounts().stream()
+-                    .map(BankAccountDTO::getId)
+-                    .toList();
+-
+-            List<BankAccount> bankAccounts = bankAccountRepository.findAllById(bankAccountIds);
+-
+-            human.setBank(bank);
+-            human.setBankAccounts(bankAccounts);
+-        }
+-
+-        human.setFirst_name(humanDTO.getFirst_name());
+-        human.setLast_name(humanDTO.getLast_name());
+-        human.setEmail(humanDTO.getEmail());
+-        human.setBirth_date(humanDTO.getBirth_date());
+-
+-        humanRepository.save(human);
+-    }
+-}
+Index: src/main/java/org/example/atm/Human/HumanServiceInterface.java
+===================================================================
+diff --git a/src/main/java/org/example/atm/Human/HumanServiceInterface.java b/src/main/java/org/example/atm/Human/HumanServiceInterface.java
+deleted file mode 100644
+--- a/src/main/java/org/example/atm/Human/HumanServiceInterface.java	
++++ /dev/null	
+@@ -1,11 +0,0 @@
+-package org.example.atm.Human;
+-
+-import java.util.List;
+-
+-public interface HumanServiceInterface {
+-    List<HumanDTO> getAllHumans();
+-    HumanDTO getHumanById(Long id);
+-    HumanDTO createHuman(HumanDTO humanDTO);
+-    HumanDTO updateHuman(Long id, HumanDTO humanDTO);
+-    void deleteHuman(Long id);
+-}
