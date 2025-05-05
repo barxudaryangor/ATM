@@ -12,6 +12,9 @@ import org.example.atm.mappers.TransactionMapper;
 import org.example.atm.repositories.TransactionRepository;
 import org.example.atm.services_interfaces.TransactionService;
 import org.example.atm.short_dtos.BankAccountShortDTO;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -123,5 +126,11 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     public void transfer(Long senderId, Long receiverId, Double amount, TransactionType transactionType) {
         transactionRepository.transfer(senderId, receiverId, amount, transactionType);
+    }
+
+    @Override
+    public Page<TransactionDTO> getTransactionsWithFilter(Specification<Transaction> spec, Pageable pageable) {
+        return transactionJpaRepository.findAll(spec, pageable)
+                .map(this::transactionToDTO);
     }
 }

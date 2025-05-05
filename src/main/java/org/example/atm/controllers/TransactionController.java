@@ -3,8 +3,14 @@ package org.example.atm.controllers;
 import jakarta.validation.Valid;
 import org.example.atm.dtos.TransactionDTO;
 import org.example.atm.dtos.TransferRequest;
+import org.example.atm.entities.Transaction;
 import org.example.atm.enums.TransactionType;
 import org.example.atm.services.TransactionServiceImpl;
+import org.example.atm.specification.TransactionSpecification;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -29,6 +35,30 @@ public class TransactionController {
     @GetMapping("/{id}")
     ResponseEntity<TransactionDTO> getTransactionById(@PathVariable Long id) {
         return ResponseEntity.ok(transactionService.getTransactionById(id));
+    }
+
+    @GetMapping("/filter")
+    ResponseEntity<Page<TransactionDTO>> getFilteredTransactions(
+            @RequestParam(required = false) Long senderId,
+            @RequestParam(required = false) Long receiverId,
+            @RequestParam(required = false) String type,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        Specification<Transaction> spec = Specification.where(null);
+
+        if (senderId != null) {
+            spec = spec.and(TransactionSpecification.hasReceiverId(senderId));
+        }
+        if (receiverId != null) {
+            spec = spec.and(TransactionSpecification.hasReceiverId(receiverId));
+        }
+
+        if (type != null) {
+            spec = spec.and(TransactionSpecification.hasType(type));
+        }
+
+        return ResponseEntity.ok(transactionService.getTransactionsWithFilter(spec, PageRequest.of(page,size)));
     }
 
     @PostMapping
@@ -57,7 +87,7 @@ public class TransactionController {
                     request.getAmount(),
                     request.getTransactionType()
             );
-            return ResponseEntity.ok("Transfer successful");
+            return ResponseEntity.ok("transfer.successful");
         } catch(RuntimeException e) {
             return ResponseEntity.badRequest().body("Error: " + e.getMessage());
         }
