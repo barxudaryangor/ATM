@@ -1,4 +1,4 @@
-package org.example.atm.dtos;
+package org.example.atm.responses;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -9,7 +9,7 @@ import java.util.List;
 @Getter
 @Setter
 
-public class SpecificationResponse<T> {
+public abstract class AbstractPaginationResponse<T> {
     private List<T> content;
     private int pageNum;
     private int pageSize;
@@ -18,7 +18,7 @@ public class SpecificationResponse<T> {
     private boolean last;
 
 
-    public SpecificationResponse(Page<T> page) {
+    public AbstractPaginationResponse(Page<T> page) {
         this.content = page.getContent();
         this.pageNum = page.getNumber();
         this.pageSize = page.getSize();
@@ -26,5 +26,6 @@ public class SpecificationResponse<T> {
         this.totalPages = page.getTotalPages();
         this.last = page.isLast();
     }
+
 
 }

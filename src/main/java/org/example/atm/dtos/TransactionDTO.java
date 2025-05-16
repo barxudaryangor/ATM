@@ -6,7 +6,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.example.atm.entities.BankAccount;
 import org.example.atm.short_dtos.BankAccountShortDTO;
 
 import java.time.LocalDateTime;

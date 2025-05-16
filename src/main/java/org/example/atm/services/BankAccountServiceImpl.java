@@ -16,10 +16,16 @@ import org.example.atm.mappers.BankMapper;
 import org.example.atm.mappers.CustomerMapper;
 import org.example.atm.mappers.TransactionMapper;
 import org.example.atm.repositories.BankAccountRepository;
+import org.example.atm.responses.BankAccountPaginationResponse;
 import org.example.atm.services_interfaces.BankAccountService;
 import org.example.atm.short_dtos.BankShortDTO;
 import org.example.atm.short_dtos.CustomerShortDTO;
 import org.example.atm.short_dtos.TransactionShortDTO;
+import org.example.atm.specification.BankAccountSpecification;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -183,5 +189,28 @@ public class BankAccountServiceImpl implements BankAccountService {
         BankAccount bankAccount = bankAccountJpaRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("bank.account.not.found"));
         bankAccountJpaRepository.delete(bankAccount);
+    }
+
+    @Override
+    public BankAccountPaginationResponse getBankAccountsWithFilter(String account_num, Long customerId, Long bankId, int pageNum, int pageSize) {
+        Specification<BankAccount> spec = Specification.where(null);
+
+        if(account_num != null && !account_num.isBlank()) {
+            spec = spec.and(BankAccountSpecification.hasAccountNum(account_num));
+        }
+
+        if(customerId != null) {
+            spec = spec.and(BankAccountSpecification.hasCustomerId(customerId));
+        }
+
+        if(bankId != null) {
+            spec = spec.and(BankAccountSpecification.hasBankId(bankId));
+        }
+
+        Pageable pageable = PageRequest.of(pageNum,pageSize);
+        Page<BankAccount> page = bankAccountJpaRepository.findAll(spec,pageable);
+        Page<BankAccountDTO> pageDTO = page.map(this::bankAccountToDTO);
+
+        return new BankAccountPaginationResponse(pageDTO);
     }
 }

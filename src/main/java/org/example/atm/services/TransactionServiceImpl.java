@@ -1,6 +1,6 @@
 package org.example.atm.services;
 
-import org.example.atm.dtos.BankAccountDTO;
+import org.example.atm.responses.TransactionPaginationResponse;
 import org.example.atm.dtos.TransactionDTO;
 import org.example.atm.dtos.TransactionResponse;
 import org.example.atm.entities.BankAccount;
@@ -17,7 +17,6 @@ import org.example.atm.specification.TransactionSpecification;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
@@ -151,7 +150,7 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public TransactionResponse getTransactionsWithFilter(Long senderId, Long receiverId, TransactionType transactionType, int pageNum, int pageSize) {
+    public TransactionPaginationResponse getTransactionsWithFilter(Long senderId, Long receiverId, TransactionType transactionType, int pageNum, int pageSize) {
         Specification<Transaction> spec = Specification.where(null);
 
         if(senderId != null) {
@@ -168,16 +167,10 @@ public class TransactionServiceImpl implements TransactionService {
 
         Pageable pageable = PageRequest.of(pageNum, pageSize);
         Page<Transaction> page = transactionJpaRepository.findAll(spec, pageable);
-        List<TransactionDTO> content = page.getContent().stream().map(this::transactionToDTO).toList();
+        Page<TransactionDTO> dtoPage = page.map(this::transactionToDTO);
 
-        return new TransactionResponse(
-                content,
-                page.getNumber(),
-                page.getSize(),
-                page.getTotalElements(),
-                page.getTotalPages(),
-                page.isLast()
-        );
+        return new TransactionPaginationResponse(dtoPage);
+
     }
 
 

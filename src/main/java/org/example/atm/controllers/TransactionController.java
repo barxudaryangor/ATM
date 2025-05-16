@@ -1,17 +1,12 @@
 package org.example.atm.controllers;
 
 import jakarta.validation.Valid;
+import org.example.atm.responses.TransactionPaginationResponse;
 import org.example.atm.dtos.TransactionDTO;
 import org.example.atm.dtos.TransactionResponse;
 import org.example.atm.dtos.TransferRequest;
-import org.example.atm.entities.Transaction;
 import org.example.atm.enums.TransactionType;
 import org.example.atm.services.TransactionServiceImpl;
-import org.example.atm.specification.TransactionSpecification;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -43,14 +38,15 @@ public class TransactionController {
 
     @GetMapping("/filter/spec")
 
-    ResponseEntity<TransactionResponse> getTransactionsWithFilter(
+    ResponseEntity<TransactionPaginationResponse> getTransactionsWithFilter(
             @RequestParam(required = false) Long senderId,
             @RequestParam(required = false) Long receiverId,
             @RequestParam(required = false) TransactionType transactionType,
             @RequestParam(defaultValue = "0") int pageNum,
             @RequestParam(defaultValue = "0") int pageSize
     ) {
-        return ResponseEntity.ok(transactionService.getTransactionsWithFilter(senderId, receiverId, transactionType, pageNum, pageSize));
+        return ResponseEntity.ok(transactionService.getTransactionsWithFilter(
+                senderId, receiverId, transactionType, pageNum, pageSize));
     }
 
     @GetMapping("/{id}")

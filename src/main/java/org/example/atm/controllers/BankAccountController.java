@@ -3,6 +3,7 @@ package org.example.atm.controllers;
 import jakarta.validation.Valid;
 import org.example.atm.dtos.BankAccountDTO;
 import org.example.atm.dtos.BankDTO;
+import org.example.atm.responses.BankAccountPaginationResponse;
 import org.example.atm.services.BankAccountServiceImpl;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -23,6 +24,18 @@ public class BankAccountController {
     @GetMapping
     ResponseEntity<List<BankAccountDTO>> getAllBankAccounts() {
         return ResponseEntity.ok(bankAccountService.getAllBankAccounts());
+    }
+
+    @GetMapping("/filter")
+    ResponseEntity<BankAccountPaginationResponse> getBankAccountsWithFilter(
+            @RequestParam(required = false) String account_num,
+            @RequestParam(required = false) Long customerId,
+            @RequestParam(required = false) Long bankId,
+            @RequestParam(defaultValue = "0") int pageNum,
+            @RequestParam(defaultValue = "10") int pageSize
+    ) {
+        return ResponseEntity.ok(bankAccountService.getBankAccountsWithFilter(
+                account_num, customerId, bankId, pageNum, pageSize));
     }
 
     @GetMapping("/{id}")
