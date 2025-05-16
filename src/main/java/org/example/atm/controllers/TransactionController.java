@@ -2,6 +2,7 @@ package org.example.atm.controllers;
 
 import jakarta.validation.Valid;
 import org.example.atm.dtos.TransactionDTO;
+import org.example.atm.dtos.TransactionResponse;
 import org.example.atm.dtos.TransferRequest;
 import org.example.atm.entities.Transaction;
 import org.example.atm.enums.TransactionType;
@@ -32,34 +33,31 @@ public class TransactionController {
         return ResponseEntity.ok(transactionService.getAllTransactions());
     }
 
+    @GetMapping("/filter")
+    ResponseEntity<TransactionResponse> getTransactionsWithPagination(
+            @RequestParam(defaultValue = "0") int pageNum,
+            @RequestParam(defaultValue = "0") int pageSize
+    ) {
+        return ResponseEntity.ok(transactionService.getTransactionsWithPagination(pageNum, pageSize));
+    }
+
+    @GetMapping("/filter/spec")
+
+    ResponseEntity<TransactionResponse> getTransactionsWithFilter(
+            @RequestParam(required = false) Long senderId,
+            @RequestParam(required = false) Long receiverId,
+            @RequestParam(required = false) TransactionType transactionType,
+            @RequestParam(defaultValue = "0") int pageNum,
+            @RequestParam(defaultValue = "0") int pageSize
+    ) {
+        return ResponseEntity.ok(transactionService.getTransactionsWithFilter(senderId, receiverId, transactionType, pageNum, pageSize));
+    }
+
     @GetMapping("/{id}")
     ResponseEntity<TransactionDTO> getTransactionById(@PathVariable Long id) {
         return ResponseEntity.ok(transactionService.getTransactionById(id));
     }
 
-    @GetMapping("/filter")
-    ResponseEntity<Page<TransactionDTO>> getFilteredTransactions(
-            @RequestParam(required = false) Long senderId,
-            @RequestParam(required = false) Long receiverId,
-            @RequestParam(required = false) String type,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
-    ) {
-        Specification<Transaction> spec = Specification.where(null);
-
-        if (senderId != null) {
-            spec = spec.and(TransactionSpecification.hasReceiverId(senderId));
-        }
-        if (receiverId != null) {
-            spec = spec.and(TransactionSpecification.hasReceiverId(receiverId));
-        }
-
-        if (type != null) {
-            spec = spec.and(TransactionSpecification.hasType(type));
-        }
-
-        return ResponseEntity.ok(transactionService.getTransactionsWithFilter(spec, PageRequest.of(page,size)));
-    }
 
     @PostMapping
     ResponseEntity<TransactionDTO> createTransaction(@Valid @RequestBody TransactionDTO transactionDTO) {

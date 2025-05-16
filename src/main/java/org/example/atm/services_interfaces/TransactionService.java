@@ -1,6 +1,7 @@
 package org.example.atm.services_interfaces;
 
 import org.example.atm.dtos.TransactionDTO;
+import org.example.atm.dtos.TransactionResponse;
 import org.example.atm.entities.Transaction;
 import org.example.atm.enums.TransactionType;
 import org.springframework.data.domain.Page;
@@ -16,5 +17,6 @@ public interface TransactionService {
     TransactionDTO updateTransaction(Long id, TransactionDTO transactionDTO);
     void deleteTransaction(Long id);
     void transfer(Long senderId, Long receiverId, Double amount, TransactionType transactionType);
-    Page<TransactionDTO> getTransactionsWithFilter(Specification<Transaction> spec, Pageable pageable);
+    TransactionResponse getTransactionsWithPagination(int pageNum, int pageSize);
+    TransactionResponse getTransactionsWithFilter(Long senderId, Long receiverId, TransactionType transactionType, int pageNum, int pageSize);
 }
