@@ -3,6 +3,7 @@ package org.example.atm.services_interfaces;
 import org.example.atm.dtos.BankAccountDTO;
 import org.example.atm.dtos.BankDTO;
 import org.example.atm.dtos.CustomerDTO;
+import org.example.atm.responses.BankPaginationResponse;
 
 import java.util.List;
 
@@ -14,4 +15,5 @@ public interface BankService {
     BankDTO updateBank(Long id, BankDTO bankDTO);
     void deleteBank(Long id);
     List<BankAccountDTO> getBankAccountsByBankId(Long bankId);
+    BankPaginationResponse getBanksWithFilter(String name, String Location, int pageNum, int pageSize);
 }

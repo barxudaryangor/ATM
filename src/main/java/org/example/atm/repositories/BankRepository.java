@@ -54,35 +54,3 @@ public class BankRepository {
 }
 
 
-
-//@Repository
-//@RequiredArgsConstructor
-//public class HumanDataRepository {
-//
-//    private final BankRepository bankRepository;
-//    private final HumanRepository humanRepository;
-//    private final BankAccountRepository bankAccountRepository;
-//
-//    public void updateHuman(Human human, HumanDTO humanDTO) {
-//        if (humanDTO.getBankId() != null && humanDTO.getBankAccounts() != null) {
-//            var bank = bankRepository.findById(humanDTO.getBankId())
-//                    .orElseThrow(() -> new RuntimeException("Bank not found"));
-//
-//            List<Long> bankAccountIds = humanDTO.getBankAccounts().stream()
-//                    .map(BankAccountDTO::getId)
-//                    .toList();
-//
-//            List<BankAccount> bankAccounts = bankAccountRepository.findAllById(bankAccountIds);
-//
-//            human.setBank(bank);
-//            human.setBankAccounts(bankAccounts);
-//        }
-//
-//        human.setFirst_name(humanDTO.getFirst_name());
-//        human.setLast_name(humanDTO.getLast_name());
-//        human.setEmail(humanDTO.getEmail());
-//        human.setBirth_date(humanDTO.getBirth_date());
-//
-//        humanRepository.save(human);
-//    }
-//}

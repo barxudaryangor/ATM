@@ -3,11 +3,14 @@ package org.example.atm.controllers;
 import jakarta.validation.Valid;
 import org.example.atm.dtos.BankAccountDTO;
 import org.example.atm.dtos.CustomerDTO;
+import org.example.atm.responses.CustomerPaginationResponse;
 import org.example.atm.services.CustomerServiceImpl;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -30,6 +33,17 @@ public class CustomerController {
         return ResponseEntity.ok(customerService.getCustomerById(id));
     }
 
+    @GetMapping("/filter")
+    ResponseEntity<CustomerPaginationResponse> getCustomersWithFilter(
+            @RequestParam(required = false) String firstName,
+            @RequestParam(required = false) String lastName,
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate birthDate,
+            @RequestParam(defaultValue = "0") int pageNum,
+            @RequestParam(defaultValue = "10") int pageSize
+    ) {
+        return ResponseEntity.ok(customerService.getCustomersWithFilter(
+                firstName, lastName, birthDate, pageNum, pageSize));
+    }
     @GetMapping("/{id}/bank_accounts")
     ResponseEntity<List<BankAccountDTO>> getBankAccountsByCustomerId(@PathVariable Long id) {
         return ResponseEntity.ok(customerService.getBankAccountsByCustomerId(id));
