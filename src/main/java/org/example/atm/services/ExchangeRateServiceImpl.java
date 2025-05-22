@@ -1,16 +1,24 @@
 package org.example.atm.services;
 
+import lombok.extern.slf4j.Slf4j;
 import org.example.atm.entities.ExchangeRate;
 import org.example.atm.jpa_repositories.ExchangeRateJpaRepository;
 import org.example.atm.repositories.ExchangeRateRepository;
+import org.example.atm.responses.ExchangeRatePaginationResponse;
 import org.example.atm.services_interfaces.ExchangeRateService;
 import org.example.atm.short_dtos.ExchangeRateShortDTO;
+import org.example.atm.specification.ExchangeRateSpecification;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Slf4j
 @Service
 public class ExchangeRateServiceImpl implements ExchangeRateService {
     private final ExchangeRateJpaRepository exchangeRateJpaRepository;
@@ -36,13 +44,13 @@ public class ExchangeRateServiceImpl implements ExchangeRateService {
     @Scheduled(cron = "0 0 */6 * * *")
     public void fetchUsdToAmdRate() {
         try {
-            System.out.println(">>> Scheduler triggered: " + LocalDateTime.now());
+            log.info(">>> Scheduler triggered at {}", LocalDateTime.now());
             Double rate = exchangeRateRepository.fetchUsdToAmdRateFromApi();
-            ExchangeRate exchangeRate = new ExchangeRate(null, rate, LocalDateTime.now());
+            ExchangeRate exchangeRate = new ExchangeRate(rate, LocalDateTime.now());
             exchangeRateJpaRepository.save(exchangeRate);
-            System.out.println("Saved rate: " + rate);
+            log.info("Saved USD to AMD rate: {}", rate);
         } catch (Exception e) {
-            System.err.println("Error fetching rate: " + e.getMessage());
+            log.error("Error fetching exchange rate: {}", e.getMessage(), e);
         }
     }
 
@@ -55,6 +63,12 @@ public class ExchangeRateServiceImpl implements ExchangeRateService {
         }
 
         return new ExchangeRateShortDTO(latest.getUsdToAmd(), latest.getLocalDateTime());
+    }
+
+    @Override
+    public ExchangeRatePaginationResponse getRatesWithFilter(Double usdToAmd, LocalDateTime localDateTime, int pageNum, int pageSize) {
+        return exchangeRateRepository.getRatesWithFilter(
+                usdToAmd, localDateTime, pageNum, pageSize);
     }
 
 }

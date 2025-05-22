@@ -52,7 +52,7 @@ public class BankServiceImpl implements BankService {
             List<BankAccountShortDTO> bankAccountShortDTOs = bank.getBankAccounts().stream()
                     .map(bankaccount -> new BankAccountShortDTO(
                             bankaccount.getId(),
-                            bankaccount.getAccount_num(),
+                            bankaccount.getAccountNum() ,
                             bankaccount.getBalance()
                     )).toList();
             bankDTO.setBankAccounts(bankAccountShortDTOs);
@@ -94,21 +94,8 @@ public class BankServiceImpl implements BankService {
 
     @Override
     public BankPaginationResponse getBanksWithFilter(String name, String location, int pageNum, int pageSize) {
-        Specification<Bank> spec = Specification.where(null);
-
-        if(name != null && !name.isBlank()) {
-            spec = spec.and(BankSpecification.hasName(name));
-        }
-
-        if(location != null && !location.isBlank()) {
-            spec = spec.and(BankSpecification.hasLocation(location));
-        }
-
-        Pageable pageable = PageRequest.of(pageNum, pageSize);
-        Page<Bank> page = bankJpaRepository.findAll(spec, pageable);
-        Page<BankDTO> pageDTO = page.map(this::bankToDTO);
-
-        return new BankPaginationResponse(pageDTO);
+        return bankRepository.getBanksWithFilter(
+                name, location, pageNum, pageSize);
     }
 
     @Override

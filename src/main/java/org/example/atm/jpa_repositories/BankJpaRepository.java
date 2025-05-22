@@ -8,6 +8,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 public interface BankJpaRepository extends JpaRepository<Bank, Long>, JpaSpecificationExecutor<Bank> {
-    @Override
-    <S extends Bank> Page<S> findAll(Example<S> example, Pageable pageable);
+
 }

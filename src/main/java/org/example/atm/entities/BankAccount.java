@@ -19,7 +19,7 @@ public class BankAccount {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String account_num;
+    private String accountNum;
     private Double balance;
 
 

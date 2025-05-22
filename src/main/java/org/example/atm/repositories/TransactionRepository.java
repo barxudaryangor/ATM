@@ -8,6 +8,14 @@ import org.example.atm.entities.Transaction;
 import org.example.atm.enums.TransactionType;
 import org.example.atm.jpa_repositories.BankAccountJpaRepository;
 import org.example.atm.jpa_repositories.TransactionJpaRepository;
+import org.example.atm.mappers.TransactionMapper;
+import org.example.atm.responses.TransactionPaginationResponse;
+import org.example.atm.short_dtos.BankAccountShortDTO;
+import org.example.atm.specification.TransactionSpecification;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -17,6 +25,34 @@ import java.time.LocalDateTime;
 public class TransactionRepository {
     private final BankAccountJpaRepository bankAccountJpaRepository;
     private final TransactionJpaRepository transactionJpaRepository;
+    private final TransactionMapper transactionMapper;
+
+    public TransactionDTO transactionToDTO(Transaction transaction) {
+        if ( transaction == null ) {
+            return null;
+        }
+
+        TransactionDTO transactionDTO = transactionMapper.transactionToDTO(transaction);
+
+        if(transaction.getReceiver() != null) {
+            BankAccountShortDTO receiverShortDTO = new BankAccountShortDTO(
+                    transaction.getReceiver().getId(),
+                    transaction.getReceiver().getAccountNum() ,
+                    transaction.getReceiver().getBalance()
+            );
+            transactionDTO.setReceiver(receiverShortDTO);
+        }
+
+        if (transaction.getSender() != null) {
+            BankAccountShortDTO senderShortDTO = new BankAccountShortDTO(
+                    transaction.getSender().getId(),
+                    transaction.getSender().getAccountNum() ,
+                    transaction.getSender().getBalance()
+            );
+            transactionDTO.setSender(senderShortDTO);
+        }
+        return transactionDTO;
+    }
 
     @Transactional
     public void updateTransaction(Transaction transaction, TransactionDTO transactionDTO){
@@ -108,6 +144,29 @@ public class TransactionRepository {
         transaction.setTimestamp(LocalDateTime.now());
 
         transactionJpaRepository.save(transaction);
+
+    }
+
+    public TransactionPaginationResponse getTransactionsWithFilter(Long senderId, Long receiverId, TransactionType transactionType, int pageNum, int pageSize) {
+        Specification<Transaction> spec = Specification.where(null);
+
+        if(senderId != null) {
+            spec = spec.and(TransactionSpecification.hasSenderId(senderId));
+        }
+
+        if(receiverId != null) {
+            spec = spec.and(TransactionSpecification.hasReceiverId(receiverId));
+        }
+
+        if(transactionType != null) {
+            spec = spec.and(TransactionSpecification.hasType(transactionType));
+        }
+
+        Pageable pageable = PageRequest.of(pageNum, pageSize);
+        Page<Transaction> page = transactionJpaRepository.findAll(spec, pageable);
+        Page<TransactionDTO> dtoPage = page.map(this::transactionToDTO);
+
+        return new TransactionPaginationResponse(dtoPage);
 
     }
 }

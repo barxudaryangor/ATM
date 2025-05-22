@@ -24,4 +24,9 @@ public class ExchangeRate {
     private Double usdToAmd;
 
     private LocalDateTime localDateTime;
+
+    public ExchangeRate(Double usdToAmd, LocalDateTime localDateTime) {
+        this.usdToAmd = usdToAmd;
+        this.localDateTime = localDateTime;
+    }
 }

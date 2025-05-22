@@ -11,10 +11,17 @@ import org.example.atm.jpa_repositories.BankAccountJpaRepository;
 import org.example.atm.jpa_repositories.BankJpaRepository;
 import org.example.atm.jpa_repositories.CustomerJpaRepository;
 import org.example.atm.mappers.BankAccountMapper;
+import org.example.atm.mappers.BankMapper;
+import org.example.atm.responses.BankPaginationResponse;
 import org.example.atm.services.BankAccountServiceImpl;
 import org.example.atm.services.BankServiceImpl;
 import org.example.atm.services.CustomerServiceImpl;
 import org.example.atm.short_dtos.BankAccountShortDTO;
+import org.example.atm.specification.BankSpecification;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -28,6 +35,29 @@ public class BankRepository {
     private final CustomerJpaRepository customerJpaRepository;
     private final BankAccountServiceImpl bankAccountService;
     private final CustomerServiceImpl customerService;
+    private final BankJpaRepository bankJpaRepository;
+    private final BankMapper bankMapper;
+
+    public BankDTO bankToDTO(Bank bank) {
+        if ( bank == null ) {
+            return null;
+        }
+
+        BankDTO bankDTO = bankMapper.bankToDTO(bank);
+
+        if(bank.getBankAccounts() != null) {
+            List<BankAccountShortDTO> bankAccountShortDTOs = bank.getBankAccounts().stream()
+                    .map(bankaccount -> new BankAccountShortDTO(
+                            bankaccount.getId(),
+                            bankaccount.getAccountNum() ,
+                            bankaccount.getBalance()
+                    )).toList();
+            bankDTO.setBankAccounts(bankAccountShortDTOs);
+        }
+
+
+        return bankDTO;
+    }
 
     public void updateBank(Bank bank, BankDTO bankDTO) {
 
@@ -50,6 +80,24 @@ public class BankRepository {
         List<Customer> customers = customerJpaRepository.findAllByBankAccounts_Bank_Id(bankId);
         return customers.stream().map(customerService::customerToDTO)
                 .toList();
+    }
+
+    public BankPaginationResponse getBanksWithFilter(String name, String location, int pageNum, int pageSize) {
+        Specification<Bank> spec = Specification.where(null);
+
+        if(name != null && !name.isBlank()) {
+            spec = spec.and(BankSpecification.hasName(name));
+        }
+
+        if(location != null && !location.isBlank()) {
+            spec = spec.and(BankSpecification.hasLocation(location));
+        }
+
+        Pageable pageable = PageRequest.of(pageNum, pageSize);
+        Page<Bank> page = bankJpaRepository.findAll(spec, pageable);
+        Page<BankDTO> pageDTO = page.map(this::bankToDTO);
+
+        return new BankPaginationResponse(pageDTO);
     }
 }
 

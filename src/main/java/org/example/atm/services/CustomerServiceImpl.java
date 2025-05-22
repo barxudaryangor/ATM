@@ -50,7 +50,7 @@ public class CustomerServiceImpl implements CustomerService {
 
         if (customer.getBankAccounts() != null) {
             List<BankAccountShortDTO> bankAccountsShortDTOs = customer.getBankAccounts().stream()
-                    .map(bankAccount -> new BankAccountShortDTO(bankAccount.getId(), bankAccount.getAccount_num(), bankAccount.getBalance()))
+                    .map(bankAccount -> new BankAccountShortDTO(bankAccount.getId(), bankAccount.getAccountNum() , bankAccount.getBalance()))
                     .collect(Collectors.toList());
             customerDTO.setBankAccounts(bankAccountsShortDTOs);
         }
@@ -100,25 +100,8 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     public CustomerPaginationResponse getCustomersWithFilter(String firstName, String lastName, LocalDate birthDate, int pageNum, int pageSize) {
-        Specification<Customer> spec = Specification.where(null);
-
-        if(firstName != null && !firstName.isBlank()) {
-            spec = spec.and(CustomerSpecification.hasFirstName(firstName));
-        }
-
-        if(lastName != null && !lastName.isBlank()) {
-            spec = spec.and(CustomerSpecification.hasLastName(lastName));
-        }
-
-        if(birthDate != null) {
-            spec = spec.and(CustomerSpecification.hasBirthDate(birthDate));
-        }
-
-        Pageable pageable = PageRequest.of(pageNum, pageSize);
-        Page<Customer> page = customerJpaRepository.findAll(spec, pageable);
-        Page<CustomerDTO> pageDTO = page.map(this::customerToDTO);
-
-        return new CustomerPaginationResponse(pageDTO);
+        return customerRepository.getCustomersWithFilter(
+                firstName, lastName, birthDate, pageNum, pageSize);
     }
 
     @Override
