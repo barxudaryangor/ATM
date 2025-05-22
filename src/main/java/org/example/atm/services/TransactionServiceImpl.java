@@ -1,7 +1,8 @@
 package org.example.atm.services;
 
-import org.example.atm.dtos.BankAccountDTO;
+import org.example.atm.responses.TransactionPaginationResponse;
 import org.example.atm.dtos.TransactionDTO;
+import org.example.atm.dtos.TransactionResponse;
 import org.example.atm.entities.BankAccount;
 import org.example.atm.entities.Transaction;
 import org.example.atm.enums.TransactionType;
@@ -12,6 +13,11 @@ import org.example.atm.mappers.TransactionMapper;
 import org.example.atm.repositories.TransactionRepository;
 import org.example.atm.services_interfaces.TransactionService;
 import org.example.atm.short_dtos.BankAccountShortDTO;
+import org.example.atm.specification.TransactionSpecification;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -124,4 +130,48 @@ public class TransactionServiceImpl implements TransactionService {
     public void transfer(Long senderId, Long receiverId, Double amount, TransactionType transactionType) {
         transactionRepository.transfer(senderId, receiverId, amount, transactionType);
     }
+
+    @Override
+    public TransactionResponse getTransactionsWithPagination(int pageNum, int pageSize) {
+        Pageable pageable = PageRequest.of(pageNum, pageSize);
+        Page<Transaction> transactions = transactionJpaRepository.findAll(pageable);
+        List<Transaction> transactionsList = transactions.getContent();
+        List<TransactionDTO> content = transactionsList.stream().map(this::transactionToDTO).toList();
+
+        TransactionResponse transactionResponse = new TransactionResponse();
+        transactionResponse.setContent(content);
+        transactionResponse.setPageNum(transactions.getNumber());
+        transactionResponse.setPageSize(transactions.getSize());
+        transactionResponse.setTotalElements(transactions.getTotalElements());
+        transactionResponse.setTotalPages(transactions.getTotalPages());
+        transactionResponse.setLast(transactions.isLast());
+
+        return transactionResponse;
+    }
+
+    @Override
+    public TransactionPaginationResponse getTransactionsWithFilter(Long senderId, Long receiverId, TransactionType transactionType, int pageNum, int pageSize) {
+        Specification<Transaction> spec = Specification.where(null);
+
+        if(senderId != null) {
+            spec = spec.and(TransactionSpecification.hasSenderId(senderId));
+        }
+
+        if(receiverId != null) {
+            spec = spec.and(TransactionSpecification.hasReceiverId(receiverId));
+        }
+
+        if(transactionType != null) {
+            spec = spec.and(TransactionSpecification.hasType(transactionType));
+        }
+
+        Pageable pageable = PageRequest.of(pageNum, pageSize);
+        Page<Transaction> page = transactionJpaRepository.findAll(spec, pageable);
+        Page<TransactionDTO> dtoPage = page.map(this::transactionToDTO);
+
+        return new TransactionPaginationResponse(dtoPage);
+
+    }
+
+
 }

@@ -68,10 +68,10 @@ public class TransactionRepository {
 
             case WITHDRAWAL:
                 if(sender == null) {
-                    throw new IllegalArgumentException("Sender must be specified for deposit");
+                    throw new IllegalArgumentException("sender.must.be.specified.for.deposit");
                 }
                 if(sender.getBalance() < amount) {
-                    throw new RuntimeException("Insufficient funds for withdrawal");
+                    throw new RuntimeException("insufficient.funds.for.withdrawal");
                 }
                 sender.setBalance(sender.getBalance() - amount);
                 bankAccountJpaRepository.save(sender);
@@ -80,11 +80,11 @@ public class TransactionRepository {
 
             case TRANSFER:
                 if(sender == null || receiver == null) {
-                    throw new IllegalArgumentException("Both sender and receiver must be specified for transfer");
+                    throw new IllegalArgumentException("sender.and.receiver.must.be.specified.for.transfer");
                 }
 
                 if(sender.getBalance() < amount) {
-                    throw new RuntimeException("Insufficient funds for transfer");
+                    throw new RuntimeException("insufficient.funds.for.transfer");
                 }
 
                 sender.setBalance(sender.getBalance() - amount);
@@ -96,7 +96,7 @@ public class TransactionRepository {
 
 
             default:
-                throw new IllegalArgumentException("Unsupported transaction type");
+                throw new IllegalArgumentException("unsupported.transaction.type");
         }
 
         Transaction transaction = new Transaction();

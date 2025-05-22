@@ -9,10 +9,18 @@ import org.example.atm.jpa_repositories.CustomerJpaRepository;
 import org.example.atm.mappers.BankAccountMapper;
 import org.example.atm.mappers.CustomerMapper;
 import org.example.atm.repositories.CustomerRepository;
+import org.example.atm.responses.CustomerPaginationResponse;
 import org.example.atm.services_interfaces.CustomerService;
 import org.example.atm.short_dtos.BankAccountShortDTO;
+import org.example.atm.specification.CustomerSpecification;
+import org.example.atm.specification.TransactionSpecification;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -91,6 +99,29 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
+    public CustomerPaginationResponse getCustomersWithFilter(String firstName, String lastName, LocalDate birthDate, int pageNum, int pageSize) {
+        Specification<Customer> spec = Specification.where(null);
+
+        if(firstName != null && !firstName.isBlank()) {
+            spec = spec.and(CustomerSpecification.hasFirstName(firstName));
+        }
+
+        if(lastName != null && !lastName.isBlank()) {
+            spec = spec.and(CustomerSpecification.hasLastName(lastName));
+        }
+
+        if(birthDate != null) {
+            spec = spec.and(CustomerSpecification.hasBirthDate(birthDate));
+        }
+
+        Pageable pageable = PageRequest.of(pageNum, pageSize);
+        Page<Customer> page = customerJpaRepository.findAll(spec, pageable);
+        Page<CustomerDTO> pageDTO = page.map(this::customerToDTO);
+
+        return new CustomerPaginationResponse(pageDTO);
+    }
+
+    @Override
     public CustomerDTO createCustomer(CustomerDTO customerDTO) {
         Customer customer = dtoToCustomer(customerDTO);
         return customerToDTO(customerJpaRepository.save(customer));
@@ -110,4 +141,6 @@ public class CustomerServiceImpl implements CustomerService {
                 .orElseThrow(() -> new RuntimeException("customer.not.found"));
         customerJpaRepository.delete(customer);
     }
+
+
 }

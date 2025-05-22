@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import org.example.atm.dtos.BankAccountDTO;
 import org.example.atm.dtos.BankDTO;
 import org.example.atm.dtos.CustomerDTO;
+import org.example.atm.responses.BankPaginationResponse;
 import org.example.atm.services.BankServiceImpl;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -39,6 +40,17 @@ public class BankController {
     @GetMapping("/{id}/customers")
     ResponseEntity<List<CustomerDTO>> getAllCustomersByBankId(@PathVariable Long id) {
         return ResponseEntity.ok(bankService.getAllCustomersByBankId(id));
+    }
+
+    @GetMapping("/filter")
+    ResponseEntity<BankPaginationResponse> getBanksWithFilter(
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) String location,
+            @RequestParam(defaultValue = "0") int pageNum,
+            @RequestParam(defaultValue = "10") int pageSize
+    ) {
+        return ResponseEntity.ok(bankService.getBanksWithFilter(
+                name, location, pageNum, pageSize));
     }
 
     @PostMapping

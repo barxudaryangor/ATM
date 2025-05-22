@@ -1,7 +1,9 @@
 package org.example.atm.controllers;
 
 import jakarta.validation.Valid;
+import org.example.atm.responses.TransactionPaginationResponse;
 import org.example.atm.dtos.TransactionDTO;
+import org.example.atm.dtos.TransactionResponse;
 import org.example.atm.dtos.TransferRequest;
 import org.example.atm.enums.TransactionType;
 import org.example.atm.services.TransactionServiceImpl;
@@ -26,10 +28,32 @@ public class TransactionController {
         return ResponseEntity.ok(transactionService.getAllTransactions());
     }
 
+    @GetMapping("/filter")
+    ResponseEntity<TransactionResponse> getTransactionsWithPagination(
+            @RequestParam(defaultValue = "0") int pageNum,
+            @RequestParam(defaultValue = "0") int pageSize
+    ) {
+        return ResponseEntity.ok(transactionService.getTransactionsWithPagination(pageNum, pageSize));
+    }
+
+    @GetMapping("/filter/spec")
+
+    ResponseEntity<TransactionPaginationResponse> getTransactionsWithFilter(
+            @RequestParam(required = false) Long senderId,
+            @RequestParam(required = false) Long receiverId,
+            @RequestParam(required = false) TransactionType transactionType,
+            @RequestParam(defaultValue = "0") int pageNum,
+            @RequestParam(defaultValue = "0") int pageSize
+    ) {
+        return ResponseEntity.ok(transactionService.getTransactionsWithFilter(
+                senderId, receiverId, transactionType, pageNum, pageSize));
+    }
+
     @GetMapping("/{id}")
     ResponseEntity<TransactionDTO> getTransactionById(@PathVariable Long id) {
         return ResponseEntity.ok(transactionService.getTransactionById(id));
     }
+
 
     @PostMapping
     ResponseEntity<TransactionDTO> createTransaction(@Valid @RequestBody TransactionDTO transactionDTO) {
@@ -57,7 +81,7 @@ public class TransactionController {
                     request.getAmount(),
                     request.getTransactionType()
             );
-            return ResponseEntity.ok("Transfer successful");
+            return ResponseEntity.ok("transfer.successful");
         } catch(RuntimeException e) {
             return ResponseEntity.badRequest().body("Error: " + e.getMessage());
         }

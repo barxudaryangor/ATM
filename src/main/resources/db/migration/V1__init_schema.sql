@@ -37,3 +37,4 @@ CREATE table transaction (
     CONSTRAINT fk_sender foreign key (sender_id) references bank_account(id),
     constraint fk_receiver foreign key (receiver_id) references bank_account(id)
 );
+
