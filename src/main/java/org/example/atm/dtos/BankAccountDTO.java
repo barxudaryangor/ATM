@@ -6,9 +6,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.example.atm.entities.Bank;
-import org.example.atm.entities.Customer;
-import org.example.atm.entities.Transaction;
 import org.example.atm.short_dtos.BankShortDTO;
 import org.example.atm.short_dtos.CustomerShortDTO;
 import org.example.atm.short_dtos.TransactionShortDTO;
@@ -24,7 +21,7 @@ public class BankAccountDTO {
     private Long id;
 
     @Size(min = 3, message = "account_num.can.not.be.empty")
-    private String account_num;
+    private String accountNum;
 
     @NotNull(message = "balance.can.not.be.empty")
     @DecimalMin(value = "0.0", message = "balance.can.not.be.empty")

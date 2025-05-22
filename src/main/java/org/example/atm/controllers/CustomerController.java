@@ -23,7 +23,7 @@ public class CustomerController {
         this.customerService = customerService;
     }
 
-    @GetMapping
+    @GetMapping("/all")
     ResponseEntity<List<CustomerDTO>> getAllCustomers() {
         return ResponseEntity.ok(customerService.getAllCustomers());
     }
@@ -33,13 +33,13 @@ public class CustomerController {
         return ResponseEntity.ok(customerService.getCustomerById(id));
     }
 
-    @GetMapping("/filter")
+    @GetMapping()
     ResponseEntity<CustomerPaginationResponse> getCustomersWithFilter(
             @RequestParam(required = false) String firstName,
             @RequestParam(required = false) String lastName,
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate birthDate,
             @RequestParam(defaultValue = "0") int pageNum,
-            @RequestParam(defaultValue = "10") int pageSize
+            @RequestParam(defaultValue = "20") int pageSize
     ) {
         return ResponseEntity.ok(customerService.getCustomersWithFilter(
                 firstName, lastName, birthDate, pageNum, pageSize));

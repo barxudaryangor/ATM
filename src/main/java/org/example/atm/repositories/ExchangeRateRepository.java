@@ -1,7 +1,15 @@
 package org.example.atm.repositories;
 
 import lombok.RequiredArgsConstructor;
+import org.example.atm.entities.ExchangeRate;
 import org.example.atm.jpa_repositories.ExchangeRateJpaRepository;
+import org.example.atm.responses.ExchangeRatePaginationResponse;
+import org.example.atm.short_dtos.ExchangeRateShortDTO;
+import org.example.atm.specification.ExchangeRateSpecification;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
@@ -10,6 +18,7 @@ import org.springframework.web.client.RestTemplate;
 
 import org.springframework.http.HttpHeaders;
 
+import java.time.LocalDateTime;
 import java.util.Map;
 
 @Repository
@@ -17,6 +26,11 @@ import java.util.Map;
 public class ExchangeRateRepository {
     private final ExchangeRateJpaRepository exchangeRateJpaRepository;
     private final RestTemplate restTemplate = new RestTemplate();
+
+
+    public ExchangeRateShortDTO exchangeRateToDTO(ExchangeRate exchangeRate) {
+        return new ExchangeRateShortDTO(exchangeRate.getUsdToAmd(),exchangeRate.getLocalDateTime());
+    }
 
     public Double fetchUsdToAmdRateFromApi() {
         String url = "https://api.apilayer.com/exchangerates_data/latest?base=USD&symbols=AMD";
@@ -32,5 +46,23 @@ public class ExchangeRateRepository {
         Map<String, Object> body = response.getBody();
         Map<String, Number> rates = (Map<String, Number>) body.get("rates");
         return rates.get("AMD").doubleValue();
+    }
+
+    public ExchangeRatePaginationResponse getRatesWithFilter(Double usdToAmd, LocalDateTime localDateTime, int pageNum, int pageSize) {
+        Specification<ExchangeRate> spec = Specification.where(null);
+
+        if(usdToAmd != null && usdToAmd>0) {
+            spec = spec.and(ExchangeRateSpecification.hasExactRate(usdToAmd));
+        }
+
+        if(localDateTime != null) {
+            spec = spec.and(ExchangeRateSpecification.hasEqualDate(localDateTime));
+        }
+
+        Pageable pageable = PageRequest.of(pageNum, pageSize);
+        Page<ExchangeRate> page = exchangeRateJpaRepository.findAll(spec,pageable);
+        Page<ExchangeRateShortDTO> pageDTO = page.map(this::exchangeRateToDTO);
+
+        return new ExchangeRatePaginationResponse(pageDTO);
     }
 }

@@ -50,7 +50,7 @@ public class TransactionServiceImpl implements TransactionService {
         if(transaction.getReceiver() != null) {
             BankAccountShortDTO receiverShortDTO = new BankAccountShortDTO(
                     transaction.getReceiver().getId(),
-                    transaction.getReceiver().getAccount_num(),
+                    transaction.getReceiver().getAccountNum() ,
                     transaction.getReceiver().getBalance()
             );
             transactionDTO.setReceiver(receiverShortDTO);
@@ -59,7 +59,7 @@ public class TransactionServiceImpl implements TransactionService {
         if (transaction.getSender() != null) {
             BankAccountShortDTO senderShortDTO = new BankAccountShortDTO(
                     transaction.getSender().getId(),
-                    transaction.getSender().getAccount_num(),
+                    transaction.getSender().getAccountNum() ,
                     transaction.getSender().getBalance()
             );
             transactionDTO.setSender(senderShortDTO);
@@ -151,25 +151,8 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     public TransactionPaginationResponse getTransactionsWithFilter(Long senderId, Long receiverId, TransactionType transactionType, int pageNum, int pageSize) {
-        Specification<Transaction> spec = Specification.where(null);
-
-        if(senderId != null) {
-            spec = spec.and(TransactionSpecification.hasSenderId(senderId));
-        }
-
-        if(receiverId != null) {
-            spec = spec.and(TransactionSpecification.hasReceiverId(receiverId));
-        }
-
-        if(transactionType != null) {
-            spec = spec.and(TransactionSpecification.hasType(transactionType));
-        }
-
-        Pageable pageable = PageRequest.of(pageNum, pageSize);
-        Page<Transaction> page = transactionJpaRepository.findAll(spec, pageable);
-        Page<TransactionDTO> dtoPage = page.map(this::transactionToDTO);
-
-        return new TransactionPaginationResponse(dtoPage);
+        return transactionRepository.getTransactionsWithFilter(
+                senderId, receiverId, transactionType, pageNum, pageSize);
 
     }
 

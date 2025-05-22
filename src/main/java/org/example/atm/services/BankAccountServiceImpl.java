@@ -93,8 +93,8 @@ public class BankAccountServiceImpl implements BankAccountService {
             List<TransactionShortDTO> sentTransactionDTOs = bankAccount.getSentTransactions()
                     .stream().map(transaction -> new TransactionShortDTO(
                             transaction.getId(),
-                            transaction.getSender() != null ? transaction.getSender().getAccount_num() : null,
-                            transaction.getReceiver() != null ? transaction.getReceiver().getAccount_num() : null
+                            transaction.getSender() != null ? transaction.getSender().getAccountNum() : null,
+                            transaction.getReceiver() != null ? transaction.getReceiver().getAccountNum() : null
                     )).toList();
             bankAccountDTO.setSentTransactions(sentTransactionDTOs);
         }
@@ -103,8 +103,8 @@ public class BankAccountServiceImpl implements BankAccountService {
             List<TransactionShortDTO> receivedTransactionDTOs = bankAccount.getReceivedTransactions()
                     .stream().map(transaction -> new TransactionShortDTO(
                             transaction.getId(),
-                            transaction.getSender() != null ? transaction.getSender().getAccount_num() : null,
-                            transaction.getReceiver() != null ? transaction.getReceiver().getAccount_num() : null
+                            transaction.getSender() != null ? transaction.getSender().getAccountNum()  : null,
+                            transaction.getReceiver() != null ? transaction.getReceiver().getAccountNum()  : null
                     )).toList();
             bankAccountDTO.setReceivedTransactions(receivedTransactionDTOs);
         }
@@ -193,24 +193,7 @@ public class BankAccountServiceImpl implements BankAccountService {
 
     @Override
     public BankAccountPaginationResponse getBankAccountsWithFilter(String account_num, Long customerId, Long bankId, int pageNum, int pageSize) {
-        Specification<BankAccount> spec = Specification.where(null);
-
-        if(account_num != null && !account_num.isBlank()) {
-            spec = spec.and(BankAccountSpecification.hasAccountNum(account_num));
-        }
-
-        if(customerId != null) {
-            spec = spec.and(BankAccountSpecification.hasCustomerId(customerId));
-        }
-
-        if(bankId != null) {
-            spec = spec.and(BankAccountSpecification.hasBankId(bankId));
-        }
-
-        Pageable pageable = PageRequest.of(pageNum,pageSize);
-        Page<BankAccount> page = bankAccountJpaRepository.findAll(spec,pageable);
-        Page<BankAccountDTO> pageDTO = page.map(this::bankAccountToDTO);
-
-        return new BankAccountPaginationResponse(pageDTO);
+        return bankAccountRepository.getBankAccountsWithFilter(
+                account_num, customerId, bankId, pageNum, pageSize);
     }
 }

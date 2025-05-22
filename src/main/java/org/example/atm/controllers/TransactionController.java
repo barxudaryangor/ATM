@@ -23,27 +23,20 @@ public class TransactionController {
         this.transactionService = transactionService;
     }
 
-    @GetMapping
+    @GetMapping("/all")
     ResponseEntity<List<TransactionDTO>> getAllTransactions() {
         return ResponseEntity.ok(transactionService.getAllTransactions());
     }
 
-    @GetMapping("/filter")
-    ResponseEntity<TransactionResponse> getTransactionsWithPagination(
-            @RequestParam(defaultValue = "0") int pageNum,
-            @RequestParam(defaultValue = "0") int pageSize
-    ) {
-        return ResponseEntity.ok(transactionService.getTransactionsWithPagination(pageNum, pageSize));
-    }
 
-    @GetMapping("/filter/spec")
+    @GetMapping()
 
     ResponseEntity<TransactionPaginationResponse> getTransactionsWithFilter(
             @RequestParam(required = false) Long senderId,
             @RequestParam(required = false) Long receiverId,
             @RequestParam(required = false) TransactionType transactionType,
             @RequestParam(defaultValue = "0") int pageNum,
-            @RequestParam(defaultValue = "0") int pageSize
+            @RequestParam(defaultValue = "20") int pageSize
     ) {
         return ResponseEntity.ok(transactionService.getTransactionsWithFilter(
                 senderId, receiverId, transactionType, pageNum, pageSize));
