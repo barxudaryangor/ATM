@@ -13,11 +13,9 @@ import org.example.atm.mappers.TransactionMapper;
 import org.example.atm.repositories.TransactionRepository;
 import org.example.atm.services_interfaces.TransactionService;
 import org.example.atm.short_dtos.BankAccountShortDTO;
-import org.example.atm.specification.TransactionSpecification;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -41,8 +39,8 @@ public class TransactionServiceImpl implements TransactionService {
 
 
     public TransactionDTO transactionToDTO(Transaction transaction) {
-        if ( transaction == null ) {
-            return null;
+        if (transaction == null) {
+            throw new RuntimeException("transaction.not.found");
         }
 
         TransactionDTO transactionDTO = transactionMapper.transactionToDTO(transaction);
@@ -68,8 +66,8 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     public Transaction dtoToTransaction(TransactionDTO transactionDTO) {
-        if ( transactionDTO == null ) {
-            return null;
+        if (transactionDTO == null) {
+            throw new RuntimeException("transaction.not.found");
         }
 
         Transaction transaction = transactionMapper.dtoToTransaction(transactionDTO);

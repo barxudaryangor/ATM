@@ -5,11 +5,7 @@ import org.example.atm.entities.ExchangeRate;
 import org.example.atm.jpa_repositories.ExchangeRateJpaRepository;
 import org.example.atm.responses.ExchangeRatePaginationResponse;
 import org.example.atm.short_dtos.ExchangeRateShortDTO;
-import org.example.atm.specification.ExchangeRateSpecification;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
@@ -49,20 +45,10 @@ public class ExchangeRateRepository {
     }
 
     public ExchangeRatePaginationResponse getRatesWithFilter(Double usdToAmd, LocalDateTime localDateTime, int pageNum, int pageSize) {
-        Specification<ExchangeRate> spec = Specification.where(null);
+        Page<ExchangeRate> page = exchangeRateJpaRepository.getRatesWithFilter(
+                usdToAmd, localDateTime, pageNum, pageSize);
 
-        if(usdToAmd != null && usdToAmd>0) {
-            spec = spec.and(ExchangeRateSpecification.hasExactRate(usdToAmd));
-        }
-
-        if(localDateTime != null) {
-            spec = spec.and(ExchangeRateSpecification.hasEqualDate(localDateTime));
-        }
-
-        Pageable pageable = PageRequest.of(pageNum, pageSize);
-        Page<ExchangeRate> page = exchangeRateJpaRepository.findAll(spec,pageable);
         Page<ExchangeRateShortDTO> pageDTO = page.map(this::exchangeRateToDTO);
-
         return new ExchangeRatePaginationResponse(pageDTO);
     }
 }
