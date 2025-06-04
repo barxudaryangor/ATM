@@ -21,11 +21,6 @@ import org.example.atm.services_interfaces.BankAccountService;
 import org.example.atm.short_dtos.BankShortDTO;
 import org.example.atm.short_dtos.CustomerShortDTO;
 import org.example.atm.short_dtos.TransactionShortDTO;
-import org.example.atm.specification.BankAccountSpecification;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -61,7 +56,7 @@ public class BankAccountServiceImpl implements BankAccountService {
 
     public BankAccountDTO bankAccountToDTO(BankAccount bankAccount) {
         if (bankAccount == null) {
-            return null;
+            throw new RuntimeException("bank.account.not.found");
         }
 
         BankAccountDTO bankAccountDTO = bankAccountMapper.bankAccountToDTO(bankAccount);
@@ -115,7 +110,7 @@ public class BankAccountServiceImpl implements BankAccountService {
 
     public BankAccount dtoToBankAccount(BankAccountDTO bankAccountDTO) {
         if ( bankAccountDTO == null ) {
-            return null;
+            throw new RuntimeException("bank.account.not.found");
         }
 
         BankAccount bankAccount = bankAccountMapper.dtoToBankAccount(bankAccountDTO);
@@ -192,8 +187,8 @@ public class BankAccountServiceImpl implements BankAccountService {
     }
 
     @Override
-    public BankAccountPaginationResponse getBankAccountsWithFilter(String account_num, Long customerId, Long bankId, int pageNum, int pageSize) {
+    public BankAccountPaginationResponse getBankAccountsWithFilter(String accountNum, Long customerId, Long bankId, int pageNum, int pageSize) {
         return bankAccountRepository.getBankAccountsWithFilter(
-                account_num, customerId, bankId, pageNum, pageSize);
+                accountNum, customerId, bankId, pageNum, pageSize);
     }
 }

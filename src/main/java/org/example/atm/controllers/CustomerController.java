@@ -23,16 +23,6 @@ public class CustomerController {
         this.customerService = customerService;
     }
 
-    @GetMapping("/all")
-    ResponseEntity<List<CustomerDTO>> getAllCustomers() {
-        return ResponseEntity.ok(customerService.getAllCustomers());
-    }
-
-    @GetMapping("/{id}")
-    ResponseEntity<CustomerDTO> getCustomerById(@PathVariable Long id) {
-        return ResponseEntity.ok(customerService.getCustomerById(id));
-    }
-
     @GetMapping()
     ResponseEntity<CustomerPaginationResponse> getCustomersWithFilter(
             @RequestParam(required = false) String firstName,
@@ -44,6 +34,12 @@ public class CustomerController {
         return ResponseEntity.ok(customerService.getCustomersWithFilter(
                 firstName, lastName, birthDate, pageNum, pageSize));
     }
+
+    @GetMapping("/{id}")
+    ResponseEntity<CustomerDTO> getCustomerById(@PathVariable Long id) {
+        return ResponseEntity.ok(customerService.getCustomerById(id));
+    }
+
     @GetMapping("/{id}/bank_accounts")
     ResponseEntity<List<BankAccountDTO>> getBankAccountsByCustomerId(@PathVariable Long id) {
         return ResponseEntity.ok(customerService.getBankAccountsByCustomerId(id));

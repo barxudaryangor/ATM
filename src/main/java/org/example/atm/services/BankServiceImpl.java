@@ -14,11 +14,6 @@ import org.example.atm.repositories.BankRepository;
 import org.example.atm.responses.BankPaginationResponse;
 import org.example.atm.services_interfaces.BankService;
 import org.example.atm.short_dtos.BankAccountShortDTO;
-import org.example.atm.specification.BankSpecification;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -42,8 +37,8 @@ public class BankServiceImpl implements BankService {
 
 
     public BankDTO bankToDTO(Bank bank) {
-        if ( bank == null ) {
-            return null;
+        if (bank == null) {
+            throw new RuntimeException("bank.not.found");
         }
 
         BankDTO bankDTO = bankMapper.bankToDTO(bank);
@@ -63,8 +58,8 @@ public class BankServiceImpl implements BankService {
     }
 
     public Bank dtoToBank(BankDTO bankDTO) {
-        if ( bankDTO == null ) {
-            return null;
+        if (bankDTO == null) {
+            throw new RuntimeException("bank.not.found");
         }
 
         Bank bank = bankMapper.dtoToBank(bankDTO);

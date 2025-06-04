@@ -21,21 +21,16 @@ public class BankAccountController {
         this.bankAccountService = bankAccountService;
     }
 
-    @GetMapping("/all")
-    ResponseEntity<List<BankAccountDTO>> getAllBankAccounts() {
-        return ResponseEntity.ok(bankAccountService.getAllBankAccounts());
-    }
-
     @GetMapping()
     ResponseEntity<BankAccountPaginationResponse> getBankAccountsWithFilter(
-            @RequestParam(required = false) String account_num,
+            @RequestParam(required = false) String accountNum,
             @RequestParam(required = false) Long customerId,
             @RequestParam(required = false) Long bankId,
             @RequestParam(defaultValue = "0") int pageNum,
             @RequestParam(defaultValue = "20") int pageSize
     ) {
         return ResponseEntity.ok(bankAccountService.getBankAccountsWithFilter(
-                account_num, customerId, bankId, pageNum, pageSize));
+                accountNum, customerId, bankId, pageNum, pageSize));
     }
 
     @GetMapping("/{id}")
