@@ -12,12 +12,6 @@ import org.example.atm.repositories.CustomerRepository;
 import org.example.atm.responses.CustomerPaginationResponse;
 import org.example.atm.services_interfaces.CustomerService;
 import org.example.atm.short_dtos.BankAccountShortDTO;
-import org.example.atm.specification.CustomerSpecification;
-import org.example.atm.specification.TransactionSpecification;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -43,7 +37,7 @@ public class CustomerServiceImpl implements CustomerService {
 
     public CustomerDTO customerToDTO(Customer customer) {
         if (customer == null) {
-            return null;
+            throw new RuntimeException("customer.not.found");
         }
 
         CustomerDTO customerDTO = customerMapper.customerToDTO(customer);
@@ -60,7 +54,7 @@ public class CustomerServiceImpl implements CustomerService {
 
     public Customer dtoToCustomer(CustomerDTO customerDTO) {
         if (customerDTO == null) {
-            return null;
+            throw new RuntimeException("customer.not.found");
         }
 
 

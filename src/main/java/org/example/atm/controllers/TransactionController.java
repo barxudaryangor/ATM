@@ -23,14 +23,7 @@ public class TransactionController {
         this.transactionService = transactionService;
     }
 
-    @GetMapping("/all")
-    ResponseEntity<List<TransactionDTO>> getAllTransactions() {
-        return ResponseEntity.ok(transactionService.getAllTransactions());
-    }
-
-
     @GetMapping()
-
     ResponseEntity<TransactionPaginationResponse> getTransactionsWithFilter(
             @RequestParam(required = false) Long senderId,
             @RequestParam(required = false) Long receiverId,

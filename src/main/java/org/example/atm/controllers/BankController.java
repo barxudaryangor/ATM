@@ -22,9 +22,15 @@ public class BankController {
         this.bankService = bankService;
     }
 
-    @GetMapping("/all")
-    ResponseEntity<List<BankDTO>> getAllBanks() {
-        return ResponseEntity.ok(bankService.getAllBanks());
+    @GetMapping()
+    ResponseEntity<BankPaginationResponse> getBanksWithFilter(
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) String location,
+            @RequestParam(defaultValue = "0") int pageNum,
+            @RequestParam(defaultValue = "20") int pageSize
+    ) {
+        return ResponseEntity.ok(bankService.getBanksWithFilter(
+                name, location, pageNum, pageSize));
     }
 
     @GetMapping("/{id}")
@@ -40,17 +46,6 @@ public class BankController {
     @GetMapping("/{id}/customers")
     ResponseEntity<List<CustomerDTO>> getAllCustomersByBankId(@PathVariable Long id) {
         return ResponseEntity.ok(bankService.getAllCustomersByBankId(id));
-    }
-
-    @GetMapping()
-    ResponseEntity<BankPaginationResponse> getBanksWithFilter(
-            @RequestParam(required = false) String name,
-            @RequestParam(required = false) String location,
-            @RequestParam(defaultValue = "0") int pageNum,
-            @RequestParam(defaultValue = "20") int pageSize
-    ) {
-        return ResponseEntity.ok(bankService.getBanksWithFilter(
-                name, location, pageNum, pageSize));
     }
 
     @PostMapping
