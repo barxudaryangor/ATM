@@ -7,11 +7,6 @@ import org.example.atm.repositories.ExchangeRateRepository;
 import org.example.atm.responses.ExchangeRatePaginationResponse;
 import org.example.atm.services_interfaces.ExchangeRateService;
 import org.example.atm.short_dtos.ExchangeRateShortDTO;
-import org.example.atm.specification.ExchangeRateSpecification;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 

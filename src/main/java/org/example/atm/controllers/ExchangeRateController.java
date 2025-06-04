@@ -22,11 +22,6 @@ public class ExchangeRateController {
         this.exchangeRateService = exchangeRateService;
     }
 
-    @GetMapping("/all")
-    public ResponseEntity<List<ExchangeRateShortDTO>> getAllExchangeRates() {
-        return ResponseEntity.ok(exchangeRateService.getAllExchangeRates());
-    }
-
     @GetMapping()
     public ResponseEntity<ExchangeRatePaginationResponse> getRatesWithFilter(
             @RequestParam(required = false) Double amdToDram,

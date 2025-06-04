@@ -11,11 +11,7 @@ import org.example.atm.jpa_repositories.TransactionJpaRepository;
 import org.example.atm.mappers.TransactionMapper;
 import org.example.atm.responses.TransactionPaginationResponse;
 import org.example.atm.short_dtos.BankAccountShortDTO;
-import org.example.atm.specification.TransactionSpecification;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -28,8 +24,8 @@ public class TransactionRepository {
     private final TransactionMapper transactionMapper;
 
     public TransactionDTO transactionToDTO(Transaction transaction) {
-        if ( transaction == null ) {
-            return null;
+        if (transaction == null ) {
+            throw new RuntimeException("transaction.not.found");
         }
 
         TransactionDTO transactionDTO = transactionMapper.transactionToDTO(transaction);
@@ -148,24 +144,10 @@ public class TransactionRepository {
     }
 
     public TransactionPaginationResponse getTransactionsWithFilter(Long senderId, Long receiverId, TransactionType transactionType, int pageNum, int pageSize) {
-        Specification<Transaction> spec = Specification.where(null);
+        Page<Transaction> page = transactionJpaRepository.getTransactionsWithFilter(
+                senderId, receiverId, transactionType, pageNum, pageSize);
 
-        if(senderId != null) {
-            spec = spec.and(TransactionSpecification.hasSenderId(senderId));
-        }
-
-        if(receiverId != null) {
-            spec = spec.and(TransactionSpecification.hasReceiverId(receiverId));
-        }
-
-        if(transactionType != null) {
-            spec = spec.and(TransactionSpecification.hasType(transactionType));
-        }
-
-        Pageable pageable = PageRequest.of(pageNum, pageSize);
-        Page<Transaction> page = transactionJpaRepository.findAll(spec, pageable);
         Page<TransactionDTO> dtoPage = page.map(this::transactionToDTO);
-
         return new TransactionPaginationResponse(dtoPage);
 
     }

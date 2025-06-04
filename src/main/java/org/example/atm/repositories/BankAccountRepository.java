@@ -2,8 +2,6 @@ package org.example.atm.repositories;
 
 import lombok.RequiredArgsConstructor;
 import org.example.atm.dtos.BankAccountDTO;
-import org.example.atm.dtos.TransactionDTO;
-import org.example.atm.entities.Bank;
 import org.example.atm.entities.BankAccount;
 import org.example.atm.entities.Transaction;
 import org.example.atm.jpa_repositories.BankAccountJpaRepository;
@@ -15,15 +13,10 @@ import org.example.atm.responses.BankAccountPaginationResponse;
 import org.example.atm.short_dtos.BankShortDTO;
 import org.example.atm.short_dtos.CustomerShortDTO;
 import org.example.atm.short_dtos.TransactionShortDTO;
-import org.example.atm.specification.BankAccountSpecification;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Repository
 @RequiredArgsConstructor
@@ -36,7 +29,7 @@ public class BankAccountRepository {
 
     public BankAccountDTO bankAccountToDTO(BankAccount bankAccount) {
         if (bankAccount == null) {
-            return null;
+            throw new RuntimeException("bank.account.not.found");
         }
 
         BankAccountDTO bankAccountDTO = bankAccountMapper.bankAccountToDTO(bankAccount);
@@ -121,25 +114,9 @@ public class BankAccountRepository {
         bankAccount.setBalance(bankAccount.getBalance());
     }
 
-    public BankAccountPaginationResponse getBankAccountsWithFilter(String account_num, Long customerId, Long bankId, int pageNum, int pageSize) {
-        Specification<BankAccount> spec = Specification.where(null);
-
-        if(account_num != null && !account_num.isBlank()) {
-            spec = spec.and(BankAccountSpecification.hasAccountNum(account_num));
-        }
-
-        if(customerId != null) {
-            spec = spec.and(BankAccountSpecification.hasCustomerId(customerId));
-        }
-
-        if(bankId != null) {
-            spec = spec.and(BankAccountSpecification.hasBankId(bankId));
-        }
-
-        Pageable pageable = PageRequest.of(pageNum,pageSize);
-        Page<BankAccount> page = bankAccountJpaRepository.findAll(spec,pageable);
+    public BankAccountPaginationResponse getBankAccountsWithFilter(String accountNum, Long customerId, Long bankId, int pageNum, int pageSize) {
+        Page<BankAccount> page = bankAccountJpaRepository.getBankAccountsWithFilter(accountNum, customerId, bankId, pageNum, pageSize);
         Page<BankAccountDTO> pageDTO = page.map(this::bankAccountToDTO);
-
         return new BankAccountPaginationResponse(pageDTO);
     }
 }
