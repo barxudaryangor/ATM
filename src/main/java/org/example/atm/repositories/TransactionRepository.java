@@ -24,9 +24,6 @@ public class TransactionRepository {
     private final TransactionMapper transactionMapper;
 
     public TransactionDTO transactionToDTO(Transaction transaction) {
-        if (transaction == null ) {
-            throw new RuntimeException("transaction.not.found");
-        }
 
         TransactionDTO transactionDTO = transactionMapper.transactionToDTO(transaction);
 
@@ -120,7 +117,7 @@ public class TransactionRepository {
                 }
 
                 sender.setBalance(sender.getBalance() - amount);
-                receiver.setBalance(sender.getBalance() + amount);
+                receiver.setBalance(receiver.getBalance() + amount);
 
                 bankAccountJpaRepository.save(sender);
                 bankAccountJpaRepository.save(receiver);

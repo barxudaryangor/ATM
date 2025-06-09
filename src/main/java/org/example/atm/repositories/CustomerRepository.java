@@ -28,9 +28,6 @@ public class CustomerRepository {
 
 
     public CustomerDTO customerToDTO(Customer customer) {
-        if (customer == null) {
-            throw new RuntimeException("customer.not.found");
-        }
 
         CustomerDTO customerDTO = customerMapper.customerToDTO(customer);
 

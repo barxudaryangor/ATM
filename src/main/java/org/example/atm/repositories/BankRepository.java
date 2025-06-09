@@ -33,9 +33,6 @@ public class BankRepository {
     private final BankMapper bankMapper;
 
     public BankDTO bankToDTO(Bank bank) {
-        if (bank == null) {
-            throw new RuntimeException("bank.not.found");
-        }
 
         BankDTO bankDTO = bankMapper.bankToDTO(bank);
 
