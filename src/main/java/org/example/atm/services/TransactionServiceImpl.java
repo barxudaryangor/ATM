@@ -1,6 +1,7 @@
 package org.example.atm.services;
 
 import jakarta.annotation.PostConstruct;
+import org.example.atm.events.TransactionEventPublisher;
 import org.example.atm.responses.TransactionPaginationResponse;
 import org.example.atm.dtos.TransactionDTO;
 import org.example.atm.dtos.TransactionResponse;
@@ -18,6 +19,7 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -31,15 +33,16 @@ public class TransactionServiceImpl implements TransactionService {
     private final TransactionMapper transactionMapper;
     private final TransactionRepository transactionRepository;
     private final BankAccountJpaRepository bankAccountJpaRepository;
-
+    private final TransactionEventPublisher transactionEventPublisher;
     private final BlockingQueue<TransactionDTO> transactionQueue = new LinkedBlockingQueue<>();
 
 
-    public TransactionServiceImpl(TransactionJpaRepository transactionJpaRepository, TransactionMapper transactionMapper, TransactionRepository transactionRepository, BankAccountJpaRepository bankAccountJpaRepository, BankAccountMapper bankAccountMapper) {
+    public TransactionServiceImpl(TransactionJpaRepository transactionJpaRepository, TransactionMapper transactionMapper, TransactionRepository transactionRepository, BankAccountJpaRepository bankAccountJpaRepository, BankAccountMapper bankAccountMapper, TransactionEventPublisher transactionEventPublisher) {
         this.transactionJpaRepository = transactionJpaRepository;
         this.transactionMapper = transactionMapper;
         this.transactionRepository = transactionRepository;
         this.bankAccountJpaRepository = bankAccountJpaRepository;
+        this.transactionEventPublisher = transactionEventPublisher;
     }
 
 
@@ -95,6 +98,11 @@ public class TransactionServiceImpl implements TransactionService {
         return transaction;
     }
 
+
+    @Override
+    public void publish(TransactionDTO transactionDTO) {
+        transactionEventPublisher.publish(transactionDTO);
+    }
     @Override
     public List<TransactionDTO> getAllTransactions() {
         return transactionJpaRepository.findAll().stream()
@@ -160,39 +168,4 @@ public class TransactionServiceImpl implements TransactionService {
                 senderId, receiverId, transactionType, pageNum, pageSize);
 
     }
-
-
-    public void publish(TransactionDTO transactionDTO) {
-        try {
-            System.out.println("Adding to Queue " + transactionDTO);
-            transactionQueue.put(transactionDTO);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new RuntimeException("Failed to publish transaction to queue", e);
-        }
-    }
-
-
-    public void processQueue() {
-        while (true) {
-            try {
-                TransactionDTO dto = transactionQueue.take();
-                System.out.println("Getting from Queue" + dto);
-                createTransaction(dto);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    @PostConstruct
-    public void initQueue() {
-        Thread thread = new Thread(this::processQueue);
-        thread.setDaemon(true);
-        thread.start();
-    }
-
-
-
-
 }
