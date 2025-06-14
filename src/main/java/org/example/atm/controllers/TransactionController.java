@@ -43,7 +43,8 @@ public class TransactionController {
 
     @PostMapping
     ResponseEntity<TransactionDTO> createTransaction(@Valid @RequestBody TransactionDTO transactionDTO) {
-        return ResponseEntity.status(201).body(transactionService.createTransaction(transactionDTO));
+        transactionService.publish(transactionDTO); // теперь идёт в очередь
+        return ResponseEntity.accepted().build();
     }
 
     @PutMapping("/{id}")

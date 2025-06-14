@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TransactionDTO {
-    @NotNull
+
     private Long id;
 
     @NotNull(message = "amount.can.not.be.empty")

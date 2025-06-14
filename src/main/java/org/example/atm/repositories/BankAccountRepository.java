@@ -28,9 +28,6 @@ public class BankAccountRepository {
     private final BankAccountMapper bankAccountMapper;
 
     public BankAccountDTO bankAccountToDTO(BankAccount bankAccount) {
-        if (bankAccount == null) {
-            throw new RuntimeException("bank.account.not.found");
-        }
 
         BankAccountDTO bankAccountDTO = bankAccountMapper.bankAccountToDTO(bankAccount);
 

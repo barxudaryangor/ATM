@@ -1,5 +1,7 @@
 package org.example.atm.services;
 
+import jakarta.annotation.PostConstruct;
+import org.example.atm.events.TransactionEventPublisher;
 import org.example.atm.responses.TransactionPaginationResponse;
 import org.example.atm.dtos.TransactionDTO;
 import org.example.atm.dtos.TransactionResponse;
@@ -13,12 +15,16 @@ import org.example.atm.mappers.TransactionMapper;
 import org.example.atm.repositories.TransactionRepository;
 import org.example.atm.services_interfaces.TransactionService;
 import org.example.atm.short_dtos.BankAccountShortDTO;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.stream.Collectors;
 
 @Service
@@ -27,15 +33,19 @@ public class TransactionServiceImpl implements TransactionService {
     private final TransactionMapper transactionMapper;
     private final TransactionRepository transactionRepository;
     private final BankAccountJpaRepository bankAccountJpaRepository;
-    private final BankAccountMapper bankAccountMapper;
+    private final TransactionEventPublisher transactionEventPublisher;
+    private final BlockingQueue<TransactionDTO> transactionQueue = new LinkedBlockingQueue<>();
 
-    public TransactionServiceImpl(TransactionJpaRepository transactionJpaRepository, TransactionMapper transactionMapper, TransactionRepository transactionRepository, BankAccountJpaRepository bankAccountJpaRepository, BankAccountMapper bankAccountMapper) {
+
+    public TransactionServiceImpl(TransactionJpaRepository transactionJpaRepository, TransactionMapper transactionMapper, TransactionRepository transactionRepository, BankAccountJpaRepository bankAccountJpaRepository, BankAccountMapper bankAccountMapper, TransactionEventPublisher transactionEventPublisher) {
         this.transactionJpaRepository = transactionJpaRepository;
         this.transactionMapper = transactionMapper;
         this.transactionRepository = transactionRepository;
         this.bankAccountJpaRepository = bankAccountJpaRepository;
-        this.bankAccountMapper = bankAccountMapper;
+        this.transactionEventPublisher = transactionEventPublisher;
     }
+
+
 
 
     public TransactionDTO transactionToDTO(Transaction transaction) {
@@ -88,6 +98,11 @@ public class TransactionServiceImpl implements TransactionService {
         return transaction;
     }
 
+
+    @Override
+    public void publish(TransactionDTO transactionDTO) {
+        transactionEventPublisher.publish(transactionDTO);
+    }
     @Override
     public List<TransactionDTO> getAllTransactions() {
         return transactionJpaRepository.findAll().stream()
@@ -153,6 +168,4 @@ public class TransactionServiceImpl implements TransactionService {
                 senderId, receiverId, transactionType, pageNum, pageSize);
 
     }
-
-
 }
