@@ -15,5 +15,6 @@ public interface TransactionService {
     void deleteTransaction(Long id);
     void transfer(Long senderId, Long receiverId, Double amount, TransactionType transactionType);
     TransactionResponse getTransactionsWithPagination(int pageNum, int pageSize);
+    void publish(TransactionDTO transactionDTO);
     TransactionPaginationResponse getTransactionsWithFilter(Long senderId, Long receiverId, TransactionType transactionType, int pageNum, int pageSize);
 }
