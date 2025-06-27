@@ -17,7 +17,6 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class BankDTO {
-    @NotNull
     private Long id;
 
     @NotBlank
