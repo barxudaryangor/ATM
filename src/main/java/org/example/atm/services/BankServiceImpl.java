@@ -65,12 +65,17 @@ public class BankServiceImpl implements BankService {
         Bank bank = bankMapper.dtoToBank(bankDTO);
 
         if(bankDTO.getBankAccounts() != null) {
-            List<Long> bankAccountsIds = bankDTO.getBankAccounts().stream()
-                    .map(BankAccountShortDTO::id).toList();
-            List<BankAccount> bankAccounts = bankAccountJpaRepository.findAllById(bankAccountsIds);
-            bank.setBankAccounts(bankAccounts);
+            List<BankAccount> accounts = bankDTO.getBankAccounts().stream()
+                    .map(shortDTO -> {
+                        BankAccount account = new BankAccount();
+                        account.setAccountNum(shortDTO.account_num());
+                        account.setBalance(shortDTO.balance());
+                        account.setBank(bank);
+                        return account;
+                    })
+                    .toList();
+            bank.setBankAccounts(accounts);
         }
-
         return bank;
     }
 
