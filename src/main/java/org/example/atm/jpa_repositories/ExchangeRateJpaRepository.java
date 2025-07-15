@@ -1,9 +1,6 @@
 package org.example.atm.jpa_repositories;
 
 import org.example.atm.entities.ExchangeRate;
-import org.example.atm.responses.ExchangeRatePaginationResponse;
-import org.example.atm.short_dtos.ExchangeRateShortDTO;
-import org.example.atm.specification.ExchangeRateSpecification;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;

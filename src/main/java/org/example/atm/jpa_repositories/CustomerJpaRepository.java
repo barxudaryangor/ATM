@@ -2,8 +2,6 @@ package org.example.atm.jpa_repositories;
 
 import org.example.atm.dtos.CustomerDTO;
 import org.example.atm.entities.Customer;
-import org.example.atm.responses.CustomerPaginationResponse;
-import org.example.atm.specification.CustomerSpecification;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
