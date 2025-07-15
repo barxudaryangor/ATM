@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.DynamicPropertyRegistrar;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -28,11 +29,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 
 @SpringBootTest
-@Testcontainers
-public class BankCreationTest extends AbstractPostgresContainerTest{
+@Import(ContainerConfigTest.class)
+public class BankCreationTest {
 
     @Autowired
-    WebApplicationContext context;
+    private WebApplicationContext context;
 
     private MockMvc mockMvc;
 
